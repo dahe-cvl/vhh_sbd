@@ -159,13 +159,56 @@ class Evaluation:
         print("recall: " + str(round(self.recall, 3)));
         print("f1score: " + str(round(self.f1score, 3)));
 
-    def evaluation(self, video_obj: Video):
-        print("NOT IMPLEMENTED YET");
+    def loadRawResultsAsCsv(self, filepath):
+        # save raw results to file
+        fp = open(filepath, mode='r');
+        lines = fp.readlines();
+        fp.close();
+        # print(lines)
 
-        vid_name = video_obj.vidName.split('.')[0];
+        dist_l = [];
+        for i in range(0, len(lines)):
+            line = lines[i].replace('\n', '')
+            line = line.replace('[', '')
+            line = line.replace(']', '')
+            line = line.replace('\'', '')
+            line = line.replace(',', '.')
+            line = line.replace(' ', '')
+            line_split = line.split(';')
+            # print(line_split)
+            vidname = line_split[0];
+            distance = float(line_split[1]);
+            dist_l.append([vidname, distance]);
 
+        dist_np = np.array(dist_l)
+        #print(dist_np.shape)
+        return dist_np
+
+    def calculateSimilarityMetric(self, results_np: np.ndarray, threshold=0.8):
+        vid_name = results_np[0][0];
+        distances_np = results_np[:, 1:2].astype('float');
+
+        idx_max = np.where(distances_np > threshold)[0]
+        shot_boundaries_l = []
+        for i in range(0, len(idx_max)):
+            shot_boundaries_l.append([vid_name, idx_max[i], idx_max[i] + 1])
+            #cv2.imwrite("./test_result" + str(i) + "_1.png", self.vid_instance.getFrame(idx_max[i]))
+            #cv2.imwrite("./test_result" + str(i) + "_2.png", self.vid_instance.getFrame(idx_max[i] + 1))
+        shot_boundaries_np = np.array(shot_boundaries_l)
+        #print(shot_boundaries_np.shape)
+        #print(shot_boundaries_np)
+
+        return shot_boundaries_np;
+
+    def evaluation(self, result_np):
+        #print("NOT IMPLEMENTED YET");
+
+        src_path = "/caa/Projects02/vhh/private/dzafirova/sbd_efilms_db_20190621/videos_converted/";
         gt_data = "/caa/Projects02/vhh/private/database_nobackup/VHH_datasets/annotations/ShotBoundaryDetection/efilms/shotBoundaries_annotations_v8_20190523.csv";
-        pred_data = "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/results_" + vid_name + ".csv";
+
+        vid_name = result_np[0][0];
+        video_obj = Video();
+        video_obj.load(src_path + "/" + str(vid_name) + ".mp4");
 
         # load gt
         fp = open(gt_data, 'r');
@@ -196,40 +239,33 @@ class Evaluation:
         gt_np = np.array(gt_l)
         #print(gt_np)
 
+        '''
         # load pred
         fp = open(pred_data, 'r');
         lines = fp.readlines();
         fp.close();
         # print(lines)
-
+        '''
+        #print("AAA")
+        #print(result_np)
         pred_l = [];
-        for i in range(0, len(lines)):
-            line = lines[i].replace('\n', '')
-            line = line.replace('[', '')
-            line = line.replace(']', '')
-            line = line.replace('\'', '')
-            line = line.replace(',', ';')
-            line = line.replace(' ', '')
-            line_split = line.split(';')
-            #print(line_split)
-
-            vidname = line_split[0];
-            start = int(line_split[1])
-            stop = int(line_split[2])
-
+        for i in range(0, len(result_np)):
+            vidname = result_np[i][0];
+            start = int(result_np[i][1])
+            stop = int(result_np[i][2])
             pred_l.append([vidname, (start, stop)]);
 
         pred_np = np.array(pred_l)
         #print(pred_np)
 
-
         idx = np.where(vid_name == pred_np)[0]
         sb_pred_np = pred_np[idx];
-        #print(sb_pred_np)
+
 
         idx = np.where(vid_name == gt_np)[0]
         sb_gt_np = gt_np[idx];
-        #print(sb_gt_np)
+
+
 
         # video-based predictions
         tp_cnt = 0;
@@ -263,6 +299,7 @@ class Evaluation:
             except:
                 res_gt = 0;
 
+            #print(str(gt_flag) + " == " + str(pred_flag))
             tp_cond = gt_flag and pred_flag; # find tuple in pred && find tuple in gt --> true
             fn_cond = gt_flag and not pred_flag; # not find tuple in pred && find tuple in gt --> true
             fp_cond = not gt_flag and pred_flag;
@@ -277,16 +314,24 @@ class Evaluation:
             if (fn_cond == True):
                 fn_cnt = fn_cnt + 1;
 
+        precision, recall, accuracy, f1_score = self.calculateEvalMetrics(tp_cnt, fp_cnt, tn_cnt, fn_cnt)
+        print("---------------------------")
+        print("video-based results")
+        print("TP: " + str(tp_cnt))
+        print("FP: " + str(fp_cnt))
+        print("TN: " + str(tn_cnt))
+        print("FN: " + str(fn_cnt))
+        print("precision: " + str(precision))
+        print("recall: " + str(recall))
+        print("accuracy: " + str(accuracy))
+        print("f1_score: " + str(f1_score))
+        return tp_cnt, fp_cnt, tn_cnt, fn_cnt;
 
-        print(tp_cnt)
-        print(fp_cnt)
-        print(tn_cnt)
-        print(fn_cnt)
-
+    def calculateEvalMetrics(self, tp_cnt, fp_cnt, tn_cnt, fn_cnt):
         # calculate precision, recall,  accuracy
         precision = tp_cnt / (tp_cnt + fp_cnt);
         recall = tp_cnt / (tp_cnt + fn_cnt);
         accuracy = (tp_cnt + tn_cnt) / (tp_cnt + tn_cnt + fp_cnt + fn_cnt);
-        print(precision)
-        print(recall)
-        print(accuracy)
+        f1_score = 2 * (precision * recall) / (precision + recall);
+
+        return precision, recall, accuracy, f1_score;

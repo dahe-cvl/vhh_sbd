@@ -21,7 +21,7 @@ class Video:
         self.convert_to_hsv = False;
 
     def load(self, vidFile: str):
-        printCustom("load video information ... ", STDOUT_TYPE.INFO);
+        #printCustom("load video information ... ", STDOUT_TYPE.INFO);
         self.vidFile = vidFile;
         if(self.vidFile == ""):
             printCustom("ERROR: you must add a video file path!", STDOUT_TYPE.ERROR);
@@ -63,7 +63,7 @@ class Video:
             print("ERROR: frame idx out of range!");
             return None;
 
-        print("Read frame with id: " + str(frame_id));
+        #print("Read frame with id: " + str(frame_id));
         time_stamp_start = datetime.datetime.now().timestamp();
 
         self.vid.set(cv2.CAP_PROP_POS_FRAMES, frame_id);
@@ -80,7 +80,7 @@ class Video:
 
         time_stamp_end = datetime.datetime.now().timestamp();
         time_diff = time_stamp_end - time_stamp_start;
-        print("time: " + str(round(time_diff, 4)) + " sec");
+        #print("time: " + str(round(time_diff, 4)) + " sec");
 
         return frame_np;
 

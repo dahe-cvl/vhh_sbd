@@ -12,7 +12,7 @@ from scipy.spatial import distance
 
 class SBD:
     def __init__(self, vid_instance: Video):
-        printCustom("INFO: create instance of sbd ... ", STDOUT_TYPE.INFO);
+        #printCustom("INFO: create instance of sbd ... ", STDOUT_TYPE.INFO);
 
         if(vid_instance == None):
             printCustom("object of type Video is None!", STDOUT_TYPE.ERROR);
@@ -30,44 +30,45 @@ class SBD:
         config_instance = Configuration(config_file);
         config_instance.loadConfig();
 
-        self.net = Squeezenet()
+        #self.net = Squeezenet();
+        self.net = VGG19a();
 
     def calculateCosineSimilarity(self, x, y):
         dst = distance.cosine(x, y)
         return dst;
 
     def run(self):
-        printCustom("process shot detection ... ", STDOUT_TYPE.INFO);
+        #printCustom("process shot detection ... ", STDOUT_TYPE.INFO);
 
         number_of_frames = int(self.vid_instance.number_of_frames);
-        print(number_of_frames)
+        #print(number_of_frames)
         results_l = [];
         for i in range(1, number_of_frames):
-            print("-------------------")
-            print("process " + str(i))
+            #print("-------------------")
+            #print("process " + str(i))
             idx_curr = i;
             idx_prev = i-1;
 
             frm_prev = self.vid_instance.getFrame(idx_prev);
             frm_curr = self.vid_instance.getFrame(idx_curr);
 
-            print("preprocess images ... ")
+            #print("preprocess images ... ")
             #dim = (int(self.vid_instance.width / 2), int(self.vid_instance.height / 2));
             #print(frm.shape)
             frm_trans_prev = self.pre_proc_instance.applyTransformOnImg(frm_prev)
             frm_trans_curr = self.pre_proc_instance.applyTransformOnImg(frm_curr)
             #print(frm_trans.shape)
 
-            print("process core part ... ")
-            feature_prev = self.net.getSqueezeNetFeatures(frm_trans_prev)
-            feature_curr = self.net.getSqueezeNetFeatures(frm_trans_curr)
+            #print("process core part ... ")
+            feature_prev = self.net.getFeatures(frm_trans_prev)
+            feature_curr = self.net.getFeatures(frm_trans_curr)
 
             result = self.calculateCosineSimilarity(feature_prev, feature_curr)
-            print(result)
+            #print(result)
             results_l.append(result)
 
         results_np = np.array(results_l)
-        print(results_np.shape)
+        #print(results_np.shape)
 
         # save raw results to file
         self.exportRawResultsAsCsv(results_np)
@@ -75,7 +76,7 @@ class SBD:
         # calculate similarity measures of consecutive frames and threshold it
         shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=0.8);
 
-        print("postprocess results ... ")
+        #print("postprocess results ... ")
 
         # export shot boundaries as csv
         self.exportResultsAsCsv(shot_boundaries_np);
@@ -83,8 +84,9 @@ class SBD:
         # convert shot boundaries to shots
         shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
 
-        printCustom("successfully finished!", STDOUT_TYPE.INFO);
+        #printCustom("successfully finished!", STDOUT_TYPE.INFO);
         return shot_l;
+
 
     def exportRawResultsAsCsv(self, results_np: np.ndarray):
         # save raw results to file
@@ -110,21 +112,7 @@ class SBD:
             # csv_writer.writerow(row);
         fp.close();
 
-    def calculateSimilarityMetric(self, results_np: np.ndarray, threshold=0.8):
-        idx_max = np.where(results_np > threshold)[0]
-        print(idx_max)
-        print(results_np[idx_max])
 
-        shot_boundaries_l = []
-        for i in range(0, len(idx_max)):
-            shot_boundaries_l.append([self.vid_instance.vidName.split('.')[0], idx_max[i], idx_max[i] + 1])
-            #cv2.imwrite("./test_result" + str(i) + "_1.png", self.vid_instance.getFrame(idx_max[i]))
-            #cv2.imwrite("./test_result" + str(i) + "_2.png", self.vid_instance.getFrame(idx_max[i] + 1))
-        shot_boundaries_np = np.array(shot_boundaries_l)
-        print(shot_boundaries_np.shape)
-        print(shot_boundaries_np)
-
-        return shot_boundaries_np;
 
     def convertShotBoundaries2Shots(self, shot_boundaries_np: np.ndarray):
         # convert results to shot instances
@@ -133,7 +121,7 @@ class SBD:
         start_curr = shot_boundaries_np[0][1];
         shot_start = 0;
         shot_end = start_curr;
-        shot = Shot(i + 1, vidname_curr, shot_start, shot_end);
+        shot = Shot(1, vidname_curr, shot_start, shot_end);
         shot_l.append(shot)
 
         for i in range(1, len(shot_boundaries_np)):

@@ -9,9 +9,11 @@ class PreProcessing:
 
     def applyTransformOnImg(self, image: np.ndarray) -> np.ndarray:
         #printCustom("NOT IMPLEMENTED YET", STDOUT_TYPE.INFO);
-
-        #dim = (int(self.vid_instance.width / 2), int(self.vid_instance.height / 2));
-
+        #print(image.shape)
+        dim = (int(image.shape[0] / 2), int(image.shape[1] / 2));
+        image_trans = self.resize(image, dim)
+        #print(image_trans.shape)
+        #exit()
         #image_trans = self.convertRGB2Gray(image);
         image_trans = image;
 
