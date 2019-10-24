@@ -6,7 +6,7 @@ from sbd.utils import *
 
 class Video:
     def __init__(self):
-        printCustom("create instance of video class ... ", STDOUT_TYPE.INFO);
+        #printCustom("create instance of video class ... ", STDOUT_TYPE.INFO);
         self.vidFile = '';
         self.vidName = "";
         self.frame_rate = 0;

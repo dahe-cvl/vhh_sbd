@@ -74,16 +74,16 @@ class SBD:
         self.exportRawResultsAsCsv(results_np)
 
         # calculate similarity measures of consecutive frames and threshold it
-        shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=0.8);
+        #shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=0.8);
 
         #print("postprocess results ... ")
 
         # export shot boundaries as csv
-        self.exportResultsAsCsv(shot_boundaries_np);
+        #self.exportResultsAsCsv(shot_boundaries_np);
 
         # convert shot boundaries to shots
-        shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
-
+        #shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
+        shot_l = [];
         #printCustom("successfully finished!", STDOUT_TYPE.INFO);
         return shot_l;
 
