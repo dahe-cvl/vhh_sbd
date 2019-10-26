@@ -4,6 +4,10 @@ from time import gmtime, strftime
 import json
 from scipy.spatial import distance
 from sbd.Video import Video
+import matplotlib.pyplot as plt
+from inspect import signature
+from sbd.Configuration import Configuration
+
 
 
 class Evaluation:
@@ -13,6 +17,10 @@ class Evaluation:
         self.precision = 0;
         self.recall = 0;
         self.f1score = 0;
+
+        config_file = "../config/config.yaml";
+        self.config_instance = Configuration(config_file);
+        self.config_instance.loadConfig();
 
     def exportResultsToCSV(self, res_np):
         print("start csv export ...");
@@ -184,6 +192,35 @@ class Evaluation:
         #print(dist_np.shape)
         return dist_np
 
+    def loadRawResultsAsCsv_New(self, filepath):
+        # save raw results to file
+        fp = open(filepath, mode='r');
+        lines = fp.readlines();
+        fp.close();
+        #print(len(lines))
+
+        final_l = [];
+        for i in range(0, len(lines)):
+            line = lines[i].replace('\n', '')
+            line = line.replace('[', '')
+            line = line.replace(']', '')
+            line = line.replace(')', '')
+            line = line.replace('(', '')
+            #line = line.replace('list', '')
+            line = line.replace('\'', '')
+            line = line.replace(',', '.')
+            #line = line.replace(' ', '')
+            line_split = line.split(';')
+            vidname = line_split[0];
+            start = int(line_split[1]);
+            end = int(line_split[2]);
+            dist_l = line_split[3:];
+            dist_np = np.array(dist_l).astype('float')
+            final_l.append([vidname, start, end, dist_np]);
+
+        final_np = np.array(final_l)
+        return final_np
+
     def calculateSimilarityMetric(self, results_np: np.ndarray, threshold=0.8):
         vid_name = results_np[0][0];
         distances_np = results_np[:, 1:2].astype('float');
@@ -198,6 +235,34 @@ class Evaluation:
         #print(shot_boundaries_np.shape)
         #print(shot_boundaries_np)
 
+        return shot_boundaries_np;
+
+    def calculateSimilarityMetric_new(self, results_np: np.ndarray, threshold=0.8):
+        shot_boundaries_l = []
+        for i in range(0, len(results_np)):
+            vid_name = results_np[i][0]
+            start = results_np[i][1]
+            end = results_np[i][2]
+            distances_l = results_np[i][3]
+            distances_np = np.array(distances_l).astype('float');
+            idx_max = np.argmax(distances_np) + start
+            #idx_max = np.where(distances_np > threshold)[0];
+            #print("----")
+            #print(idx_max)
+            #print(distances_np[np.argmax(distances_np)])
+            #print(distances_np[np.argmax(distances_np)] > threshold)
+            #print(idx_max)
+            #print(start)
+
+            if(distances_np[np.argmax(distances_np)] > threshold):
+                final_idx = idx_max
+                shot_boundaries_l.append([vid_name, final_idx, final_idx + 1])
+                #print(final_idx)
+
+            # cv2.imwrite("./test_result" + str(i) + "_1.png", self.vid_instance.getFrame(idx_max[i]))
+            # cv2.imwrite("./test_result" + str(i) + "_2.png", self.vid_instance.getFrame(idx_max[i] + 1))
+
+        shot_boundaries_np = np.array(shot_boundaries_l)
         return shot_boundaries_np;
 
     def evaluation(self, result_np):
@@ -260,10 +325,14 @@ class Evaluation:
 
         idx = np.where(vid_name == pred_np)[0]
         sb_pred_np = pred_np[idx];
+        #print("---------")
+        #print(sb_pred_np)
 
 
         idx = np.where(vid_name == gt_np)[0]
         sb_gt_np = gt_np[idx];
+        #print("---------")
+        #print(sb_gt_np)
 
 
 
@@ -318,18 +387,20 @@ class Evaluation:
         #tmp_str = str(vid_name) + ";" + str(tp_cnt) + ";" + str(fp_cnt) + ";" + str(tn_cnt) + ";" + str(
         #    fn_cnt) + ";" + str(precision) + ";" + str(recall) + ";" + str(accuracy) + ";" + str(f1_score)
         #print(tmp_str)
-        '''
+
         print("---------------------------")
         print("video-based results")
         print("TP: " + str(tp_cnt))
         print("FP: " + str(fp_cnt))
         print("TN: " + str(tn_cnt))
         print("FN: " + str(fn_cnt))
+        '''
         print("precision: " + str(precision))
         print("recall: " + str(recall))
         print("accuracy: " + str(accuracy))
         print("f1_score: " + str(f1_score))
         '''
+
         return tp_cnt, fp_cnt, tn_cnt, fn_cnt;
 
     def calculateEvalMetrics(self, tp_cnt, fp_cnt, tn_cnt, fn_cnt):
@@ -354,7 +425,17 @@ class Evaluation:
         else:
             f1_score = 0;
 
-        return precision, recall, accuracy, f1_score;
+        if ((tp_cnt + fn_cnt) != 0):
+            tp_rate = tp_cnt / (tp_cnt + fn_cnt);
+        else:
+            tp_rate = 0;
+
+        if ((tp_cnt + fn_cnt) != 0):
+            fp_rate = fp_cnt / (fp_cnt + tn_cnt);
+        else:
+            fp_rate = 0;
+
+        return precision, recall, accuracy, f1_score, tp_rate, fp_rate;
 
     def export2CSV(self, data_np: np.ndarray, header: str, filename: str, path: str):
         # save to csv file
@@ -368,7 +449,7 @@ class Evaluation:
             fp.write(tmp_str + "\n")
         fp.close();
 
-    def calculatePrecisionRecallCurve(self, src_path: str, vid_name_list: list, prefix="results_raw_"):
+    def calculateEvaluationMetrics(self, src_path: str, vid_name_list: list, prefix="results_raw_"):
         tp_sum = 0;
         fp_sum = 0;
         tn_sum = 0;
@@ -376,12 +457,12 @@ class Evaluation:
 
         #vid_name_list = ['EF-NS_095_OeFM']
         final_results = []
-        # thresholds_l = [0.95, 0.90, 0.85, 0.8, 0.75]
-        # for t in thresholds_l:
-        for s in range(350, 950):
+        #thresholds_l = [0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60]
+        #for t in thresholds_l:
+        for s in range(0, 1000):
             THRESHOLD = s * 0.001;
-            # THRESHOLD = t;
-            print("step: " + str(s))
+            #THRESHOLD = t;
+            #print("step: " + str(s))
             results_l = [];
             for vid_name in vid_name_list:
                 results_np = self.loadRawResultsAsCsv(str(src_path) + "/" + prefix + str(vid_name) + ".csv")
@@ -390,7 +471,7 @@ class Evaluation:
                 shot_boundaries_np1 = self.calculateSimilarityMetric(results_np, threshold=THRESHOLD);
                 if (len(shot_boundaries_np1) != 0):
                     tp, fp, tn, fn = self.evaluation(shot_boundaries_np1);
-                    p, r, acc, f1_score = self.calculateEvalMetrics(tp, fp, tn, fn);
+                    p, r, acc, f1_score, tp_rate, fp_rate = self.calculateEvalMetrics(tp, fp, tn, fn);
                 else:
                     tp = 0;
                     fp = 0;
@@ -407,12 +488,83 @@ class Evaluation:
                 tn_sum = tn_sum + tn;
                 fn_sum = fn_sum + fn;
 
-            p, r, acc, f1_score = self.calculateEvalMetrics(tp_sum, fp_sum, tn_sum, fn_sum);
+            p, r, acc, f1_score, tp_rate, fp_rate = self.calculateEvalMetrics(tp_sum, fp_sum, tn_sum, fn_sum);
 
-            final_results.append([str(THRESHOLD), p, r, acc, f1_score])
+            final_results.append([str(THRESHOLD), p, r, acc, f1_score, tp_rate, fp_rate])
 
             results_l.append(["overall", tp_sum, fp_sum, tn_sum, fn_sum, p, r, acc, f1_score])
             results_np = np.array(results_l);
 
         final_results_np = np.array(final_results);
         return final_results_np;
+
+
+    def calculateEvaluationMetrics_New(self, src_path: str, vid_name_list: list, prefix="results_raw_"):
+        tp_sum = 0;
+        fp_sum = 0;
+        tn_sum = 0;
+        fn_sum = 0;
+
+        #vid_name_list = ['EF-NS_095_OeFM']
+        final_results = []
+        #thresholds_l = [0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60, 0.55]
+        thresholds_l = [0.30]
+        for t in thresholds_l:
+        #for s in range(0, 1000):
+            #THRESHOLD = s * 0.001;
+            THRESHOLD = t;
+            #print("step: " + str(s))
+            results_l = [];
+            for vid_name in vid_name_list:
+                results_np = self.loadRawResultsAsCsv_New(str(src_path) + "/" + prefix + str(vid_name) + ".csv")
+
+                # calculate similarity measures of consecutive frames and threshold it
+                shot_boundaries_np1 = self.calculateSimilarityMetric_new(results_np, threshold=THRESHOLD);
+                #print(shot_boundaries_np1)
+
+                if (len(shot_boundaries_np1) != 0):
+                    tp, fp, tn, fn = self.evaluation(shot_boundaries_np1);
+                    p, r, acc, f1_score, tp_rate, fp_rate = self.calculateEvalMetrics(tp, fp, tn, fn);
+                else:
+                    tp = 0;
+                    fp = 0;
+                    tn = 0;
+                    fn = 0;
+                    p = 0;
+                    r = 0;
+                    acc = 0;
+                    f1_score = 0;
+                results_l.append([vid_name, tp, fp, tn, fn, p, r, acc, f1_score])
+
+                tp_sum = tp_sum + tp;
+                fp_sum = fp_sum + fp;
+                tn_sum = tn_sum + tn;
+                fn_sum = fn_sum + fn;
+
+            p, r, acc, f1_score, tp_rate, fp_rate = self.calculateEvalMetrics(tp_sum, fp_sum, tn_sum, fn_sum);
+
+            final_results.append([str(THRESHOLD), p, r, acc, f1_score, tp_rate, fp_rate])
+
+            results_l.append(["overall", tp_sum, fp_sum, tn_sum, fn_sum, p, r, acc, f1_score])
+            results_np = np.array(results_l);
+
+        final_results_np = np.array(final_results);
+        return final_results_np;
+
+    def drawPRCurve(self, results_np):
+        precision = np.squeeze(results_np[1:, 1:2].astype('float')).tolist()
+        recall = np.squeeze(results_np[1:, 2:3].astype('float')).tolist()
+
+        step_kwargs = ({'step': 'post'}
+                       if 'step' in signature(plt.fill_between).parameters
+                       else {})
+        plt.step(recall, precision, color='b', alpha=0.2,
+                 where='post')
+        plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
+
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.title("2-class Precision-Recall curve");
+        plt.savefig("../Develop/test.png")

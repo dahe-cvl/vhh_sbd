@@ -20,8 +20,10 @@ sbd_eval_instance = Evaluation();
 #                 'EF-NS_013_OeFM', 'EF-NS_043_USHMM', 'EF-NS_095_OeFM']
 
 # calculate precision recall curve
-vid_name_list = ['EF-NS_095_OeFM']
-final_results_np = sbd_eval_instance.calculatePrecisionRecallCurve(src_path="../Demo", vid_name_list=vid_name_list, prefix="results_raw_");
+vid_name_list = ['EF-NS_004_OeFM']
+final_results_np = sbd_eval_instance.calculateEvaluationMetrics_New(src_path="../Demo", vid_name_list=vid_name_list, prefix="results_raw_");
+print(final_results_np)
+sbd_eval_instance.drawPRCurve(final_results_np);
 
 # export results to csv file
 sbd_eval_instance.export2CSV(final_results_np,
