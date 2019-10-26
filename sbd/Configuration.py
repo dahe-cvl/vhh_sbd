@@ -8,11 +8,31 @@ class Configuration:
 
         self.config_file = config_file;
 
+        self.path_postfix_raw_results = None;
+        self.path_prefix_raw_results = None;
+        self.path_raw_results = None;
+
+        self.path_prefix_final_results = None;
+        self.path_postfix_final_results = None;
+        self.path_final_results = None;
+
     def loadConfig(self):
         fp = open(self.config_file, 'r');
         config = yaml.load(fp);
 
-        for section in config:
-            print(section)
-        print(config['example_config_01']);
-        print(config['example_config_02']);
+        developer_config = config['Development'];
+        pre_processing_config = config['PreProcessing'];
+        post_processing_config = config['PostProcessing'];
+        sbd_core_config = config['SbdCore'];
+        visualization_config = config['Visualization'];
+
+
+        # sbd_core_config section
+        print(sbd_core_config)
+        self.path_postfix_raw_results = sbd_core_config['POSTFIX_RAW_RESULTS'];
+        self.path_prefix_raw_results = sbd_core_config['PREFIX_RAW_RESULTS'];
+        self.path_raw_results = sbd_core_config['PATH_RAW_RESULTS'];
+
+        self.path_prefix_final_results = sbd_core_config['PREFIX_FINAL_RESULTS'];
+        self.path_postfix_final_results = sbd_core_config['POSTFIX_FINAL_RESULTS'];
+        self.path_final_results = sbd_core_config['PATH_FINAL_RESULTS'];

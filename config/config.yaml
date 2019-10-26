@@ -1,9 +1,26 @@
 
 
-example_config_01:
-  a: 2
+Development:
+  DEBUG_FLAG: 0
   b: 5
 
-example_config_02:
+PreProcessing:
+  c: 2
+  d: 5
+
+SbdCore:
+  PATH_RAW_RESULTS: "./"
+  PREFIX_RAW_RESULTS: "results_raw_"
+  POSTFIX_RAW_RESULTS: "csv"
+
+  PATH_FINAL_RESULTS: "./"
+  PREFIX_FINAL_RESULTS: "results_"
+  POSTFIX_FINAL_RESULTS: "csv"
+
+PostProcessing:
+  c: 2
+  d: 5
+
+Visualization:
   c: 2
   d: 5

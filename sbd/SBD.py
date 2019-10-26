@@ -22,16 +22,15 @@ class SBD:
         self.pre_proc_instance = PreProcessing();
         self.evaluation_instance = Evaluation();
 
+        self.net = None;
+
         # parse configuration
         #cwd = os.getcwd()
         #print(cwd)
 
         config_file = "../config/config.yaml";
-        config_instance = Configuration(config_file);
-        config_instance.loadConfig();
-
-        #self.net = Squeezenet();
-        self.net = VGG19a();
+        self.config_instance = Configuration(config_file);
+        self.config_instance.loadConfig();
 
     def calculateCosineSimilarity(self, x, y):
         dst = distance.cosine(x, y)
@@ -39,6 +38,9 @@ class SBD:
 
     def run(self):
         #printCustom("process shot detection ... ", STDOUT_TYPE.INFO);
+
+        self.net = Squeezenet();
+        # self.net = VGG19a();
 
         number_of_frames = int(self.vid_instance.number_of_frames);
         #print(number_of_frames)
@@ -87,20 +89,112 @@ class SBD:
         #printCustom("successfully finished!", STDOUT_TYPE.INFO);
         return shot_l;
 
+    def runOnRange(self, candidates_np):
+        #printCustom("process shot detection ... ", STDOUT_TYPE.INFO);
+
+        results_l = [];
+        shot_l = []
+        for i in range(0, len(candidates_np)):
+            start = candidates_np[i][0]
+            end = candidates_np[i][1] - 1
+
+            #print(start)
+            #print(end)
+            results_per_range = []
+            for j in range(start+1, end):
+                # print("-------------------")
+                # print("process " + str(i))
+                idx_curr = j;
+                idx_prev = j - 1;
+
+                frm_prev = self.vid_instance.getFrame(idx_prev);
+                frm_curr = self.vid_instance.getFrame(idx_curr);
+
+                if(len(frm_prev) == 0 or len(frm_curr) == 0):
+                    break;
+                #print(idx_prev)
+                #print(idx_curr)
+                #print(frm_prev.shape)
+                #print(frm_curr.shape)
+
+                # print("preprocess images ... ")
+                # dim = (int(self.vid_instance.width / 2), int(self.vid_instance.height / 2));
+                # print(frm.shape)
+                frm_trans_prev = self.pre_proc_instance.applyTransformOnImg(frm_prev)
+                frm_trans_curr = self.pre_proc_instance.applyTransformOnImg(frm_curr)
+                # print(frm_trans.shape)
+
+                # print("process core part ... ")
+                feature_prev = self.net.getFeatures(frm_trans_prev)
+                feature_curr = self.net.getFeatures(frm_trans_curr)
+
+                result = self.calculateCosineSimilarity(feature_prev, feature_curr)
+                if(result > 0.8):
+                    print(idx_prev)
+                    print(idx_curr)
+                    shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
+
+                results_per_range.append(result)
+
+            results_l.append([start, end, results_per_range])
+
+        results_np = np.array(results_l)
+        #print(results_np)
+
+        # save raw results to file
+        self.exportRawResultsAsCsv_New(results_np)
+
+        # calculate similarity measures of consecutive frames and threshold it
+        #shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=0.8);
+
+        #print("postprocess results ... ")
+
+        # export shot boundaries as csv
+        #self.exportResultsAsCsv(shot_boundaries_np);
+
+        # convert shot boundaries to shots
+        #shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
+        shots_np = np.array(shot_l)
+        #printCustom("successfully finished!", STDOUT_TYPE.INFO);
+        return shots_np;
 
     def exportRawResultsAsCsv(self, results_np: np.ndarray):
         # save raw results to file
-        fp = open("./" + "results_raw_" + str(self.vid_instance.vidName.split('.')[0]) + ".csv", mode='w');
+        fp = open(self.config_instance.path_raw_results +
+                  self.config_instance.path_prefix_raw_results +
+                  str(self.vid_instance.vidName.split('.')[0]) +
+                  self.config_instance.path_postfix_raw_results, mode='w');
+
         for i in range(0, len(results_np)):
             # for j in range(0, len(results_np[0])):
             # print(sb_np[i])
-            fp.write(self.vid_instance.vidName.split('.')[0] + ";" + str(results_np[i]).replace('.', ',') + "\n")
+            fp.write(self.vid_instance.vidName.split('.')[0] + ";" + str(results_np[i]) + "\n")
+            # csv_writer.writerow(row);
+        fp.close();
+
+    def exportRawResultsAsCsv_New(self, results_np: np.ndarray):
+        # save raw results to file
+        fp = open(self.config_instance.path_raw_results +
+                  self.config_instance.path_prefix_raw_results +
+                  str(self.vid_instance.vidName.split('.')[0]) +
+                  self.config_instance.path_postfix_raw_results, mode='w');
+
+        for i in range(0, len(results_np)):
+            start, end, distances_l = results_np[i]
+            tmp_str = str(start) + ";" + str(end)
+            for j in range(0, len(distances_l)):
+                tmp_str = tmp_str + ";" + str(distances_l[j])
+            fp.write(self.vid_instance.vidName.split('.')[0] + ";" + str(tmp_str) + "\n")
             # csv_writer.writerow(row);
         fp.close();
 
     def exportResultsAsCsv(self, shot_boundaries_np):
         # save final results to file
-        fp = open("./" + "results_" + str(self.vid_instance.vidName.split('.')[0]) + ".csv", mode='w');
+        fp = open(self.config_instance.path_final_results +
+                  self.config_instance.path_prefix_final_results +
+                  str(self.vid_instance.vidName.split('.')[0]) +
+                  self.config_instance.path_postfix_final_results, mode='w');
+
         for i in range(0, len(shot_boundaries_np)):
             # print(sb_np[i])
             vidname = shot_boundaries_np[i][0];
