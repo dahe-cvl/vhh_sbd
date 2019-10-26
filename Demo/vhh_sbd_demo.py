@@ -1,6 +1,7 @@
 from sbd.SBD import SBD
 from sbd.utils import *
 from sbd.Video import Video
+from sbd.DeepSBD import CandidateSelection
 import os
 
 printCustom("Welcome to the sbd framework!", STDOUT_TYPE.INFO);
@@ -14,15 +15,15 @@ print("CUDA_VISIBLE_DEVICES: ", str(os.environ['CUDA_VISIBLE_DEVICES']))
 print("PYTHONPATH: ", str(os.environ['PYTHONPATH']))
 print("------------------------------------------")
 
-vid_instance = Video();
-sbd_instance = SBD(vid_instance);
-
 src_path = "/caa/Projects02/vhh/private/dzafirova/sbd_efilms_db_20190621/videos_converted/";
 filename_l = os.listdir("/caa/Projects02/vhh/private/dzafirova/sbd_efilms_db_20190621/videos_converted/")
-print(filename_l)
-
 
 print("start")
+
+vid_instance = Video();
+candidate_selection_instance = CandidateSelection()
+sbd_instance = SBD(vid_instance);
+
 #vidname_list = filename_l;
 
 vidname_list = ['EF-NS_032_OeFM.mp4',
@@ -41,15 +42,20 @@ vidname_list = ['EF-NS_032_OeFM.mp4',
                 'EF-NS_053_USHMM.mp4', 'EF-NS_100_OeFM.mp4', 'EF-NS_029_OeFM_R02-02.mp4', 'EF-NS_091_OeFM.mp4',
                 'EF-NS_066_OeFM.mp4', 'EF-NS_061_OeFM.mp4', 'EF-NS_005_OeFM.mp4', 'EF-NS_099_OeFM.mp4',
                 'EF-NS_084_USHMM.mp4']
-
+'''
+vidname_list = ['EF-NS_004_OeFM.mp4']
+'''
 
 for vidname in vidname_list:
     printCustom("--------------------------", STDOUT_TYPE.INFO)
     printCustom("Process video: " + str(vidname) + " ... ", STDOUT_TYPE.INFO)
-    vid_instance.load(src_path + "/" + vidname);
-    #vid_path = "/caa/Projects02/vhh/private/dzafirova/sbd_efilms_db_20190621/videos_converted/EF-NS_009_OeFM.mp4";
-    #vid_path = "/caa/Projects02/vhh/private/dzafirova/sbd_efilms_db_20190621/videos_converted/EF-NS_026_OeFM.mp4";
-    #vid_instance.load(vid_path);
 
-    shot_list = sbd_instance.run();
-    print(len(shot_list))
+    # load video instance
+    vid_instance.load(src_path + "/" + vidname);
+
+    # candidate selection
+    candidate_selection_result_np = candidate_selection_instance.run(src_path + "/" + vidname)
+
+    # shot boundary detection
+    shots_np = sbd_instance.runOnRange(candidate_selection_result_np);
+    print(shots_np)

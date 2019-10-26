@@ -61,7 +61,7 @@ class Video:
         self.vid.open(self.vidFile);
         if(frame_id >= self.number_of_frames):
             print("ERROR: frame idx out of range!");
-            return None;
+            return [];
 
         #print("Read frame with id: " + str(frame_id));
         time_stamp_start = datetime.datetime.now().timestamp();
