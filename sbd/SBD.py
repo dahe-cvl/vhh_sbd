@@ -229,7 +229,7 @@ class SBD:
         # save raw results to file
         fp = open(self.config_instance.path_raw_results +
                   self.config_instance.path_prefix_raw_results +
-                  str(self.vid_instance.vidName.split('.')[0]) +
+                  str(self.vid_instance.vidName.split('.')[0]) + "." +
                   self.config_instance.path_postfix_raw_results, mode='w');
 
         for i in range(0, len(results_np)):
@@ -243,7 +243,7 @@ class SBD:
         # save raw results to file
         fp = open(self.config_instance.path_raw_results +
                   self.config_instance.path_prefix_raw_results +
-                  str(self.vid_instance.vidName.split('.')[0]) +
+                  str(self.vid_instance.vidName.split('.')[0]) + "." +
                   self.config_instance.path_postfix_raw_results, mode='w');
 
         for i in range(0, len(results_np)):
