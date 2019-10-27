@@ -21,6 +21,9 @@ class Configuration:
         self.backbone_cnn = None;
         self.similarity_metric = None;
 
+        self.path_eval_results = None;
+        self.save_eval_results = None;
+
     def loadConfig(self):
         fp = open(self.config_file, 'r');
         config = yaml.load(fp);
@@ -30,6 +33,7 @@ class Configuration:
         post_processing_config = config['PostProcessing'];
         sbd_core_config = config['SbdCore'];
         visualization_config = config['Visualization'];
+        evaluation_config = config['Evaluation'];
 
 
         # sbd_core_config section
@@ -46,6 +50,11 @@ class Configuration:
         self.threshold = sbd_core_config['THRESHOLD'];
         self.backbone_cnn = sbd_core_config['BACKBONE_CNN'];
         self.similarity_metric = sbd_core_config['SIMILARITY_METRIC'];
+
+        # evaluation section
+        self.path_eval_results = evaluation_config['PATH_EVAL_RESULTS'];
+        self.save_eval_results = evaluation_config['SAVE_EVAL_RESULTS'];
+
 
 
 

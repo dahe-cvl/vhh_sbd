@@ -6,30 +6,8 @@ import numpy as np
 
 printCustom("Welcome to the sbd evauation framework!", STDOUT_TYPE.INFO);
 
-tp_sum = 0;
-fp_sum = 0;
-tn_sum = 0;
-fn_sum = 0;
-
 sbd_eval_instance = Evaluation();
-
-# load raw results
-#vid_name = "EF-NS_004_OeFM"; 'EF-NS_026_OeFM', 'EF-NS_004_OeFM',
-#vid_name_list = ['EF-NS_004_OeFM', 'EF-NS_016_OeFM', 'EF-NS_060_OeFM_R03-01',
-#                 'EF-NS_009_OeFM', 'EF-NS_032_OeFM', 'EF-NS_083_USHMM',
-#                 'EF-NS_013_OeFM', 'EF-NS_043_USHMM', 'EF-NS_095_OeFM']
-
-# calculate precision recall curve
-vid_name_list = ['EF-NS_026_OeFM']
-final_results_np = sbd_eval_instance.calculateEvaluationMetrics_New(src_path="../Demo", vid_name_list=vid_name_list, prefix="results_raw_");
-print(final_results_np)
-sbd_eval_instance.drawPRCurve(final_results_np);
-
-# export results to csv file
-sbd_eval_instance.export2CSV(final_results_np,
-                             "threshold;p;r;acc;f1_score" + "\n",
-                             "final_evaluation_pr_curve",
-                             "../Develop/");
+sbd_eval_instance.run();
 
 
 '''

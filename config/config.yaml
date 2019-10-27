@@ -9,11 +9,11 @@ PreProcessing:
   d: 5
 
 SbdCore:
-  PATH_RAW_RESULTS: "./"
+  PATH_RAW_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/results_raw/"
   PREFIX_RAW_RESULTS: "results_raw_"
   POSTFIX_RAW_RESULTS: "csv"
 
-  PATH_FINAL_RESULTS: "./"
+  PATH_FINAL_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/"
   PREFIX_FINAL_RESULTS: "results_"
   POSTFIX_FINAL_RESULTS: "csv"
 
@@ -29,3 +29,7 @@ PostProcessing:
 Visualization:
   c: 2
   d: 5
+
+Evaluation:
+  SAVE_EVAL_RESULTS: 1
+  PATH_EVAL_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Develop/"

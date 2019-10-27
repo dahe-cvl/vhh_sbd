@@ -7,7 +7,7 @@ from sbd.Video import Video
 import matplotlib.pyplot as plt
 from inspect import signature
 from sbd.Configuration import Configuration
-
+import os
 
 
 class Evaluation:
@@ -387,14 +387,14 @@ class Evaluation:
         #tmp_str = str(vid_name) + ";" + str(tp_cnt) + ";" + str(fp_cnt) + ";" + str(tn_cnt) + ";" + str(
         #    fn_cnt) + ";" + str(precision) + ";" + str(recall) + ";" + str(accuracy) + ";" + str(f1_score)
         #print(tmp_str)
-
+        '''
         print("---------------------------")
         print("video-based results")
         print("TP: " + str(tp_cnt))
         print("FP: " + str(fp_cnt))
         print("TN: " + str(tn_cnt))
         print("FN: " + str(fn_cnt))
-        '''
+        
         print("precision: " + str(precision))
         print("recall: " + str(recall))
         print("accuracy: " + str(accuracy))
@@ -403,7 +403,7 @@ class Evaluation:
 
         return tp_cnt, fp_cnt, tn_cnt, fn_cnt;
 
-    def calculateEvalMetrics(self, tp_cnt, fp_cnt, tn_cnt, fn_cnt):
+    def calculateMetrics(self, tp_cnt, fp_cnt, tn_cnt, fn_cnt):
         # calculate precision, recall,  accuracy
         if(tp_cnt + fp_cnt != 0):
             precision = tp_cnt / (tp_cnt + fp_cnt);
@@ -499,24 +499,32 @@ class Evaluation:
         return final_results_np;
 
 
-    def calculateEvaluationMetrics_New(self, src_path: str, vid_name_list: list, prefix="results_raw_"):
+    def calculateEvaluationMetrics_New(self):
+        vid_name_list = os.listdir(self.config_instance.path_raw_results)
+        #vid_name_list = ['results_raw_EF-NS_026_OeFM.csv']
+
         tp_sum = 0;
         fp_sum = 0;
         tn_sum = 0;
         fn_sum = 0;
 
-        #vid_name_list = ['EF-NS_095_OeFM']
         final_results = []
-        #thresholds_l = [0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60, 0.55]
-        thresholds_l = [0.30]
+        thresholds_l = [0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60, 0.55]
+        #thresholds_l = [0.80]
         for t in thresholds_l:
         #for s in range(0, 1000):
             #THRESHOLD = s * 0.001;
             THRESHOLD = t;
             #print("step: " + str(s))
+
+            if(self.config_instance.save_eval_results == 1):
+                fp_video_based = open(self.config_instance.path_eval_results + "/final_results_th-" + str(THRESHOLD) + ".csv", 'w');
+                header = "vid_name;tp;fp;tn;fn;p;r;acc;f1_score;tp_rate;fp_rate";
+                fp_video_based.write(header + "\n")
+
             results_l = [];
             for vid_name in vid_name_list:
-                results_np = self.loadRawResultsAsCsv_New(str(src_path) + "/" + prefix + str(vid_name) + ".csv")
+                results_np = self.loadRawResultsAsCsv_New(self.config_instance.path_raw_results + "/" + vid_name)
 
                 # calculate similarity measures of consecutive frames and threshold it
                 shot_boundaries_np1 = self.calculateSimilarityMetric_new(results_np, threshold=THRESHOLD);
@@ -524,7 +532,14 @@ class Evaluation:
 
                 if (len(shot_boundaries_np1) != 0):
                     tp, fp, tn, fn = self.evaluation(shot_boundaries_np1);
-                    p, r, acc, f1_score, tp_rate, fp_rate = self.calculateEvalMetrics(tp, fp, tn, fn);
+                    p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp, fp, tn, fn);
+
+                    if (self.config_instance.save_eval_results == 1):
+                        tmp_str = str(vid_name.replace('results_raw_', '').split('.')[0]) + ";" + str(tp) + ";" + str(fp) + \
+                                  ";" + str(tn) + ";" + str(fn) + ";" + str(p) + ";" + str(r) + ";" + str(acc) + ";" + \
+                                  str(f1_score) + ";" + str(tp_rate) + ";" + str(fp_rate);
+                        print(tmp_str);
+                        fp_video_based.write(tmp_str + "\n")
                 else:
                     tp = 0;
                     fp = 0;
@@ -541,13 +556,18 @@ class Evaluation:
                 tn_sum = tn_sum + tn;
                 fn_sum = fn_sum + fn;
 
-            p, r, acc, f1_score, tp_rate, fp_rate = self.calculateEvalMetrics(tp_sum, fp_sum, tn_sum, fn_sum);
+            p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp_sum, fp_sum, tn_sum, fn_sum);
+
+            if (self.config_instance.save_eval_results == 1):
+                tmp_str = str("overall" + ";" + str(tp_sum) + ";" + str(fp_sum) + \
+                          ";" + str(tn_sum) + ";" + str(fn_sum) + ";" + str(p) + ";" + str(r) + ";" + str(acc) + ";" + \
+                          str(f1_score) + ";" + str(tp_rate) + ";" + str(fp_rate));
+                print(tmp_str);
+
+                fp_video_based.write(tmp_str + "\n");
+                fp_video_based.close();
 
             final_results.append([str(THRESHOLD), p, r, acc, f1_score, tp_rate, fp_rate])
-
-            results_l.append(["overall", tp_sum, fp_sum, tn_sum, fn_sum, p, r, acc, f1_score])
-            results_np = np.array(results_l);
-
         final_results_np = np.array(final_results);
         return final_results_np;
 
@@ -568,3 +588,19 @@ class Evaluation:
         plt.xlim([0.0, 1.0])
         plt.title("2-class Precision-Recall curve");
         plt.savefig("../Develop/test.png")
+
+    def run(self):
+        print("evaluation ... ");
+
+        final_results_np = self.calculateEvaluationMetrics_New();
+        print(final_results_np)
+
+        '''
+        self.drawPRCurve(final_results_np);
+
+        # export results to csv file
+        self.export2CSV(final_results_np,
+                                     "threshold;p;r;acc;f1_score" + "\n",
+                                     "final_evaluation_pr_curve",
+                                     "../Develop/");
+        '''
