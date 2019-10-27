@@ -73,15 +73,14 @@ class SBD:
             shots_np = self.runWithCandidateSelection(candidate_selection_result_np)
             #print(shots_np)
             shot_boundaries_l.append(shots_np);
-        shot_boundaries_np = np.array(shot_boundaries_l);
-        print(np.squeeze(shot_boundaries_np))
-        print(np.squeeze(shot_boundaries_np).shape)
+        shot_boundaries_np = np.squeeze(np.array(shot_boundaries_l));
 
         # convert shot boundaries to final shots
-        shot_l = self.convertShotBoundaries2Shots(np.squeeze(shot_boundaries_np))
+        final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
 
-        for i in range(0, len(shot_l)):
-            shot_l[i].printShotInfo()
+        # TODO: export final shot results to csv file
+
+
 
 
     def runWithoutCandidateSelection(self, src_path, vid_name):
@@ -278,14 +277,6 @@ class SBD:
 
     def convertShotBoundaries2Shots(self, shot_boundaries_np: np.ndarray):
         # convert results to shot instances
-        print(shot_boundaries_np)
-        print(shot_boundaries_np.shape)
-
-        print(shot_boundaries_np[0][0])
-        print(shot_boundaries_np[0][1])
-        print(shot_boundaries_np[1][0])
-        print(shot_boundaries_np[1][1])
-        exit()
 
         shot_l = [];
         vidname_curr = shot_boundaries_np[0][0];
@@ -296,21 +287,27 @@ class SBD:
         shot_l.append(shot)
 
         for i in range(1, len(shot_boundaries_np)):
-            print(i)
-            start_prev, stop_prev = shot_boundaries_np[i][2];
-            vidname_curr = shot_boundaries_np[i][0];
+            #print(i)
+            start_prev, stop_prev = shot_boundaries_np[i-1][1];
             start_curr, stop_curr = shot_boundaries_np[i][1];
+            vidname_curr = shot_boundaries_np[i][0];
+
             shot_start = stop_prev;
             shot_end = start_curr;
             shot = Shot(i + 1, vidname_curr, shot_start, shot_end);
             shot_l.append(shot)
 
         vidname_curr = shot_boundaries_np[-1][0];
-        start_curr, stop_curr = shot_boundaries_np[-1][2];
+        start_curr, stop_curr = shot_boundaries_np[-1][1];
         shot_start = stop_curr;
         shot_end = self.vid_instance.number_of_frames;
         shot = Shot(len(shot_boundaries_np), vidname_curr, shot_start, shot_end);
         shot_l.append(shot)
+
+        # print shot infos
+        for i in range(0, len(shot_l)):
+            shot_l[i].printShotInfo()
+
         return shot_l;
 
 
