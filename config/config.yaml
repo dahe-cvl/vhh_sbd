@@ -17,6 +17,11 @@ SbdCore:
   PREFIX_FINAL_RESULTS: "results_"
   POSTFIX_FINAL_RESULTS: "csv"
 
+  PATH_VIDEOS: "/caa/Projects02/vhh/private/dzafirova/sbd_efilms_db_20190621/videos_converted/"
+  THRESHOLD: 0.8
+  BACKBONE_CNN: "squeeze"
+  SIMILARITY_METRIC: "cosine"
+
 PostProcessing:
   c: 2
   d: 5
