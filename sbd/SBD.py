@@ -70,9 +70,9 @@ class SBD:
 
             # shot boundary detection
             printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
-            shots_np = self.runWithCandidateSelection(candidate_selection_result_np);
+            shots_np = self.runWithCandidateSelection(candidate_selection_result_np)
             #print(shots_np)
-            shot_boundaries_l.append(shots_np)
+            shot_boundaries_l.append(shots_np);
         shot_boundaries_np = np.array(shot_boundaries_l);
         print(np.squeeze(shot_boundaries_np))
         print(np.squeeze(shot_boundaries_np).shape)

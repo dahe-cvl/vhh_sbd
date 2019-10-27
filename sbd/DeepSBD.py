@@ -90,8 +90,8 @@ class CandidateSelection:
                                           ToTensor(1),
                                           Normalize(self.get_mean(1), [1, 1, 1])]);
 
-        print(video_path)
-        print(os.path.exists(video_path))
+        #print(video_path)
+        #print(os.path.exists(video_path))
         assert (os.path.exists(video_path))
         videocap = cv2.VideoCapture(video_path)
         status = True

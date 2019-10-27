@@ -14,7 +14,7 @@ class Squeezenet:
         print("create instance of squeezenet ... ");
 
         self.model = SqueezeNet(include_top=False, weights='imagenet')
-        self.model.summary()
+        #self.model.summary()
 
     def getFeatures(self, frm: np.ndarray):
         #print("calculate features ... ")
