@@ -245,19 +245,30 @@ class Evaluation:
             end = results_np[i][2]
             distances_l = results_np[i][3]
             distances_np = np.array(distances_l).astype('float');
-            idx_max = np.argmax(distances_np) + start
-            #idx_max = np.where(distances_np > threshold)[0];
-            #print("----")
-            #print(idx_max)
-            #print(distances_np[np.argmax(distances_np)])
-            #print(distances_np[np.argmax(distances_np)] > threshold)
-            #print(idx_max)
-            #print(start)
 
-            if(distances_np[np.argmax(distances_np)] > threshold):
-                final_idx = idx_max
-                shot_boundaries_l.append([vid_name, final_idx, final_idx + 1])
-                #print(final_idx)
+            active = True;
+            if(active == True):
+                # just take the maximum of each range
+                min_val = np.min(distances_np);
+                max_val = np.max(distances_np);
+                max_real = 1.0;
+                min_real = 0.0;
+                distances_scaled = ((max_real - min_real) / (max_val - min_val)) * (distances_np - min_val) + min_real;
+                distances_np = distances_scaled
+
+                idx_max = np.argmax(distances_np) + start
+
+                if (distances_np[np.argmax(distances_np)] > threshold):
+                    final_idx = idx_max
+                    shot_boundaries_l.append([vid_name, final_idx, final_idx + 1])
+            else:
+                # just take all frame positions over specified threshold
+                idx_max = np.argmax(distances_np) + start
+
+                if(distances_np[np.argmax(distances_np)] > threshold):
+                    final_idx = idx_max
+                    shot_boundaries_l.append([vid_name, final_idx, final_idx + 1])
+                    #print(final_idx)
 
             # cv2.imwrite("./test_result" + str(i) + "_1.png", self.vid_instance.getFrame(idx_max[i]))
             # cv2.imwrite("./test_result" + str(i) + "_2.png", self.vid_instance.getFrame(idx_max[i] + 1))
@@ -430,8 +441,9 @@ class Evaluation:
         else:
             tp_rate = 0;
 
-        if ((tp_cnt + fn_cnt) != 0):
-            fp_rate = fp_cnt / (fp_cnt + tn_cnt);
+        if ((tn_cnt + fp_cnt) != 0):
+            #Specificity = True Negatives / (True Negatives + False Positives)
+            fp_rate = 1 - (tn_cnt / (tn_cnt + fp_cnt));
         else:
             fp_rate = 0;
 
@@ -501,18 +513,18 @@ class Evaluation:
 
     def calculateEvaluationMetrics_New(self):
         vid_name_list = os.listdir(self.config_instance.path_raw_results)
-        #vid_name_list = ['results_raw_EF-NS_026_OeFM.csv']
-
-        tp_sum = 0;
-        fp_sum = 0;
-        tn_sum = 0;
-        fn_sum = 0;
+        vid_name_list = ['results_raw_EF-NS_004_OeFM.csv', 'results_raw_EF-NS_013_OeFM.csv', 'results_raw_EF-NS_016_OeFM.csv']
 
         final_results = []
-        thresholds_l = [0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60, 0.55]
-        #thresholds_l = [0.80]
+        #thresholds_l = [1.0, 0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60, 0.55,
+        #                0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
+        thresholds_l = [0.80]
         for t in thresholds_l:
         #for s in range(0, 1000):
+            tp_sum = 0;
+            fp_sum = 0;
+            tn_sum = 0;
+            fn_sum = 0;
             #THRESHOLD = s * 0.001;
             THRESHOLD = t;
             #print("step: " + str(s))
@@ -567,19 +579,20 @@ class Evaluation:
                 fp_video_based.write(tmp_str + "\n");
                 fp_video_based.close();
 
-            final_results.append([str(THRESHOLD), p, r, acc, f1_score, tp_rate, fp_rate])
+            final_results.append([str(THRESHOLD), tp_sum, fp_sum, tn_sum, fn_sum, p, r, acc, f1_score, tp_rate, fp_rate])
         final_results_np = np.array(final_results);
         return final_results_np;
 
-    def drawPRCurve(self, results_np):
-        precision = np.squeeze(results_np[1:, 1:2].astype('float')).tolist()
-        recall = np.squeeze(results_np[1:, 2:3].astype('float')).tolist()
+    def plotPRCurve(self, results_np):
+        print("plot precision recall curve ... ")
+        precision = np.squeeze(results_np[1:, 5:6].astype('float')).tolist()
+        recall = np.squeeze(results_np[1:, 6:7].astype('float')).tolist()
 
+        plt.figure()
         step_kwargs = ({'step': 'post'}
                        if 'step' in signature(plt.fill_between).parameters
                        else {})
-        plt.step(recall, precision, color='b', alpha=0.2,
-                 where='post')
+        plt.step(recall, precision, color='b', alpha=0.2, where='post')
         plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
 
         plt.xlabel('Recall')
@@ -587,17 +600,31 @@ class Evaluation:
         plt.ylim([0.0, 1.05])
         plt.xlim([0.0, 1.0])
         plt.title("2-class Precision-Recall curve");
-        plt.savefig("../Develop/test.png")
+        plt.savefig(self.config_instance.path_eval_results + "/pr_curve.png")
+
+    def plotROCCurve(self, results_np):
+        print("plot roc curve ... ")
+        tp_rate = np.squeeze(results_np[1:, 8:9].astype('float')).tolist()
+        fp_rate = np.squeeze(results_np[1:, 9:10].astype('float')).tolist()
+
+        plt.figure()
+        plt.plot(fp_rate, tp_rate, color='orange', label='ROC')
+        #plt.plot([0, 1], [0, 1], color='darkblue', linestyle='--')
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('Receiver Operating Characteristic (ROC) Curve')
+        plt.legend()
+        plt.savefig(self.config_instance.path_eval_results + "/roc_curve.png")
 
     def run(self):
         print("evaluation ... ");
 
         final_results_np = self.calculateEvaluationMetrics_New();
         print(final_results_np)
+        self.plotPRCurve(final_results_np);
+        self.plotROCCurve(final_results_np);
 
         '''
-        self.drawPRCurve(final_results_np);
-
         # export results to csv file
         self.export2CSV(final_results_np,
                                      "threshold;p;r;acc;f1_score" + "\n",

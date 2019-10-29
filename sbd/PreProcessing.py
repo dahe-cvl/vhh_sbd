@@ -1,21 +1,36 @@
 from sbd.utils import *
 import cv2
 import numpy as np
+from sbd.Configuration import Configuration
 
 
 class PreProcessing:
     def __init__(self):
         printCustom("create instance of preprocessing ... ", STDOUT_TYPE.INFO);
 
+        config_file = "../config/config.yaml";
+        self.config_instance = Configuration(config_file);
+        self.config_instance.loadConfig();
+
     def applyTransformOnImg(self, image: np.ndarray) -> np.ndarray:
-        #printCustom("NOT IMPLEMENTED YET", STDOUT_TYPE.INFO);
-        #print(image.shape)
-        dim = (int(image.shape[0] / 2), int(image.shape[1] / 2));
-        image_trans = self.resize(image, dim)
-        #print(image_trans.shape)
-        #exit()
-        #image_trans = self.convertRGB2Gray(image);
         image_trans = image;
+
+        # convert to grayscale image
+        if(int(self.config_instance.flag_convert2Gray) == 1):
+            image_trans = self.convertRGB2Gray(image_trans);
+
+        # resize image
+        if(self.config_instance.flag_downscale == 1):
+            dim = (int(image_trans.shape[0] / 3), int(image_trans.shape[1] / 3));
+            image_trans = self.resize(image_trans, dim)
+
+        # apply histogram equalization
+        if(self.config_instance.opt_histogram_equ == 'classic'):
+            image_trans = self.classicHE(image_trans);
+        elif(self.config_instance.opt_histogram_equ == 'clahe'):
+            image_trans = self.claHE(image_trans)
+        #elif(self.config_instance.opt_histogram_equ == 'none'):
+        #    image_trans
 
         return image_trans;
 
@@ -25,9 +40,7 @@ class PreProcessing:
         for i in range(0, len(img_seq)):
             img_seq_trans_l.append(self.applyTransformOnImg(img_seq[i]));
         img_seq_trans = np.array(img_seq_trans_l)
-
         return img_seq_trans
-
 
     def convertRGB2Gray(self, img: np.ndarray):
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY);
@@ -36,10 +49,23 @@ class PreProcessing:
 
     def crop(self, img: np.ndarray, dim: tuple):
         img_crop = img;
-
         return img_crop;
 
     def resize(self, img: np.ndarray, dim: tuple):
         img_resized = cv2.resize(img, dim);
         return img_resized;
+
+    def classicHE(self, img: np.ndarray):
+        # classic histogram equalization
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img_che =  cv2.equalizeHist(gray);
+        img_che = cv2.cvtColor(img_che, cv2.COLOR_GRAY2RGB)
+        return img_che;
+
+    def claHE(self, img: np.ndarray):
+        # contrast Limited Adaptive Histogram Equalization
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        img_clahe = cv2.createCLAHE(gray);
+        img_clahe = cv2.cvtColor(img_clahe, cv2.COLOR_GRAY2RGB)
+        return img_clahe;
 

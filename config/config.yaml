@@ -5,11 +5,12 @@ Development:
   b: 5
 
 PreProcessing:
-  c: 2
-  d: 5
+  CONVERT2GRAY: 0           # 0 or 1
+  DOWNSCALE: 1              # 0 or 1
+  HISTOGRAM_EQU: 'classic'  # "clahe" or "classic" or "none"
 
 SbdCore:
-  PATH_RAW_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/results_raw/"
+  PATH_RAW_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/results_raw_classic/"
   PREFIX_RAW_RESULTS: "results_raw_"
   POSTFIX_RAW_RESULTS: "csv"
 

@@ -8,6 +8,10 @@ class Configuration:
 
         self.config_file = config_file;
 
+        self.flag_convert2Gray = None;
+        self.flag_downscale = None;
+        self.opt_histogram_equ = None;
+
         self.path_postfix_raw_results = None;
         self.path_prefix_raw_results = None;
         self.path_raw_results = None;
@@ -35,9 +39,12 @@ class Configuration:
         visualization_config = config['Visualization'];
         evaluation_config = config['Evaluation'];
 
+        # pre-processing section
+        self.flag_convert2Gray = pre_processing_config['CONVERT2GRAY'];
+        self.flag_downscale = pre_processing_config['DOWNSCALE'];
+        self.opt_histogram_equ = pre_processing_config['HISTOGRAM_EQU'];
 
         # sbd_core_config section
-        #print(sbd_core_config)
         self.path_postfix_raw_results = sbd_core_config['POSTFIX_RAW_RESULTS'];
         self.path_prefix_raw_results = sbd_core_config['PREFIX_RAW_RESULTS'];
         self.path_raw_results = sbd_core_config['PATH_RAW_RESULTS'];

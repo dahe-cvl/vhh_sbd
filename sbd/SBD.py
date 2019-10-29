@@ -52,8 +52,10 @@ class SBD:
     def run(self):
         self.src_path = self.config_instance.path_videos;
         self.filename_l = os.listdir(self.src_path)
-        # vid_name_l = self.filename_l
-        vid_name_l = ['EF-NS_026_OeFM.mp4']
+        #vid_name_l = self.filename_l
+        vid_name_l = ['EF-NS_004_OeFM.mp4', 'EF-NS_013_OeFM.mp4', 'EF-NS_016_OeFM.mp4', 'EF-NS_009_OeFM.mp4',
+                      'EF-NS_043_USHMM.mp4', 'EF-NS_060_OeFM_R03-01.mp4', 'EF-NS_095_OeFM.mp4']
+        #vid_name_l = ['EF-NS_091_OeFM.mp4']
 
         shot_boundaries_l = []
         for vid_name in vid_name_l:
@@ -78,10 +80,18 @@ class SBD:
         # convert shot boundaries to final shots
         final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
 
-        # TODO: export final shot results to csv file
+        # export final results
+        self.exportResultsToCsv(final_shot_l);
 
+    def exportResultsToCsv(self, shot_l: list):
+        printCustom("Export shot list to csv file ... ", STDOUT_TYPE.INFO);
 
-
+        fp = open(self.config_instance.path_final_results + "/final_shots" + ".csv", 'w');
+        fp.write("shot_id;vid_name;start;end" + "/n")
+        for shot in shot_l:
+            tmp_str = shot.convert2String();
+            fp.write(tmp_str + "\n");
+        fp.close()
 
     def runWithoutCandidateSelection(self, src_path, vid_name):
         #printCustom("process shot detection ... ", STDOUT_TYPE.INFO);
@@ -187,10 +197,9 @@ class SBD:
 
                 # print("preprocess images ... ")
                 # dim = (int(self.vid_instance.width / 2), int(self.vid_instance.height / 2));
-                # print(frm.shape)
                 frm_trans_prev = self.pre_proc_instance.applyTransformOnImg(frm_prev)
                 frm_trans_curr = self.pre_proc_instance.applyTransformOnImg(frm_curr)
-                # print(frm_trans.shape)
+
 
                 # print("process core part ... ")
                 feature_prev = self.net.getFeatures(frm_trans_prev)

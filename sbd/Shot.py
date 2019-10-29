@@ -10,6 +10,10 @@ class Shot:
         self.start_pos = start_pos;
         self.end_pos = end_pos;
 
+    def convert2String(self):
+        tmp_str = self.sid + ";" + self.movie_name + ";" + self.start_pos + ";" + self.end_pos;
+        return tmp_str;
+
     def printShotInfo(self):
         print("------------------------")
         print("shot id: " + str(self.sid));
