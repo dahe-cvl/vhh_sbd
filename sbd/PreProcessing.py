@@ -65,7 +65,8 @@ class PreProcessing:
     def claHE(self, img: np.ndarray):
         # contrast Limited Adaptive Histogram Equalization
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        img_clahe = cv2.createCLAHE(gray);
+        clahe = cv2.createCLAHE();
+        img_clahe = clahe.apply(gray)
         img_clahe = cv2.cvtColor(img_clahe, cv2.COLOR_GRAY2RGB)
         return img_clahe;
 

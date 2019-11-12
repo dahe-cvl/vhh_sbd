@@ -513,9 +513,13 @@ class Evaluation:
 
     def calculateEvaluationMetrics_New(self):
         vid_name_list = os.listdir(self.config_instance.path_raw_results)
-        vid_name_list = ['results_raw_EF-NS_004_OeFM.csv', 'results_raw_EF-NS_013_OeFM.csv', 'results_raw_EF-NS_016_OeFM.csv']
+        #vid_name_list = ['results_raw_EF-NS_004_OeFM.csv', 'results_raw_EF-NS_013_OeFM.csv',
+        #                 'results_raw_EF-NS_016_OeFM.csv', 'results_raw_EF-NS_009_OeFM.csv']
+                         #'results_raw_EF-NS_043_USHMM.csv', 'results_raw_EF-NS_060_OeFM_R03-01.csv',
+                         #'results_raw_EF-NS_095_OeFM.csv']
 
         final_results = []
+        fp_video_based = None;
         #thresholds_l = [1.0, 0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60, 0.55,
         #                0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
         thresholds_l = [0.80]
@@ -529,7 +533,7 @@ class Evaluation:
             THRESHOLD = t;
             #print("step: " + str(s))
 
-            if(self.config_instance.save_eval_results == 1):
+            if(int(self.config_instance.save_eval_results) == 1):
                 fp_video_based = open(self.config_instance.path_eval_results + "/final_results_th-" + str(THRESHOLD) + ".csv", 'w');
                 header = "vid_name;tp;fp;tn;fn;p;r;acc;f1_score;tp_rate;fp_rate";
                 fp_video_based.write(header + "\n")
@@ -546,7 +550,7 @@ class Evaluation:
                     tp, fp, tn, fn = self.evaluation(shot_boundaries_np1);
                     p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp, fp, tn, fn);
 
-                    if (self.config_instance.save_eval_results == 1):
+                    if (int(self.config_instance.save_eval_results) == 1):
                         tmp_str = str(vid_name.replace('results_raw_', '').split('.')[0]) + ";" + str(tp) + ";" + str(fp) + \
                                   ";" + str(tn) + ";" + str(fn) + ";" + str(p) + ";" + str(r) + ";" + str(acc) + ";" + \
                                   str(f1_score) + ";" + str(tp_rate) + ";" + str(fp_rate);
@@ -570,7 +574,7 @@ class Evaluation:
 
             p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp_sum, fp_sum, tn_sum, fn_sum);
 
-            if (self.config_instance.save_eval_results == 1):
+            if (int(self.config_instance.save_eval_results) == 1):
                 tmp_str = str("overall" + ";" + str(tp_sum) + ";" + str(fp_sum) + \
                           ";" + str(tn_sum) + ";" + str(fn_sum) + ";" + str(p) + ";" + str(r) + ";" + str(acc) + ";" + \
                           str(f1_score) + ";" + str(tp_rate) + ";" + str(fp_rate));

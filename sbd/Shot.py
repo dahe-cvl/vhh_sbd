@@ -11,7 +11,7 @@ class Shot:
         self.end_pos = end_pos;
 
     def convert2String(self):
-        tmp_str = self.sid + ";" + self.movie_name + ";" + self.start_pos + ";" + self.end_pos;
+        tmp_str = str(self.sid) + ";" + str(self.movie_name) + ";" + str(self.start_pos) + ";" + str(self.end_pos);
         return tmp_str;
 
     def printShotInfo(self):

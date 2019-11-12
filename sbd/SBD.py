@@ -52,11 +52,9 @@ class SBD:
     def run(self):
         self.src_path = self.config_instance.path_videos;
         self.filename_l = os.listdir(self.src_path)
-        #vid_name_l = self.filename_l
-        vid_name_l = ['EF-NS_004_OeFM.mp4', 'EF-NS_013_OeFM.mp4', 'EF-NS_016_OeFM.mp4', 'EF-NS_009_OeFM.mp4',
-                      'EF-NS_043_USHMM.mp4', 'EF-NS_060_OeFM_R03-01.mp4', 'EF-NS_095_OeFM.mp4']
-        #vid_name_l = ['EF-NS_091_OeFM.mp4']
-
+        vid_name_l = self.filename_l
+        #vid_name_l = ['OFM_Entree-du-Cinematographe-a-Vienne_H264-1440x1080-High-CAVLC-12Mbps-KFIAuto-mp-AudioNone_16fps_0001-03-0505.mp4']
+        print(vid_name_l)
         shot_boundaries_l = []
         for vid_name in vid_name_l:
             printCustom("--------------------------", STDOUT_TYPE.INFO)
@@ -78,6 +76,7 @@ class SBD:
         shot_boundaries_np = np.squeeze(np.array(shot_boundaries_l));
 
         # convert shot boundaries to final shots
+        print(shot_boundaries_np.shape)
         final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
 
         # export final results

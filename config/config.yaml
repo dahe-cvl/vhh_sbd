@@ -5,12 +5,12 @@ Development:
   b: 5
 
 PreProcessing:
-  CONVERT2GRAY: 0           # 0 or 1
+  CONVERT2GRAY: 0           # 0 or 1   --> not working yet
   DOWNSCALE: 1              # 0 or 1
-  HISTOGRAM_EQU: 'classic'  # "clahe" or "classic" or "none"
+  HISTOGRAM_EQU: 'none'  # "clahe" or "classic" or "none"
 
 SbdCore:
-  PATH_RAW_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/results_raw_classic/"
+  PATH_RAW_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/imc_results_raw/"
   PREFIX_RAW_RESULTS: "results_raw_"
   POSTFIX_RAW_RESULTS: "csv"
 
@@ -18,7 +18,8 @@ SbdCore:
   PREFIX_FINAL_RESULTS: "results_"
   POSTFIX_FINAL_RESULTS: "csv"
 
-  PATH_VIDEOS: "/caa/Projects02/vhh/private/dzafirova/sbd_efilms_db_20190621/videos_converted/"
+  #PATH_VIDEOS: "/caa/Projects02/vhh/private/dzafirova/sbd_efilms_db_20190621/videos_converted/"
+  PATH_VIDEOS: "/caa/Projects02/vhh/private/database_nobackup/IMediaCities_datasets/IMC_database/videos/"
   THRESHOLD: 0.8
   BACKBONE_CNN: "squeeze"
   SIMILARITY_METRIC: "cosine"
