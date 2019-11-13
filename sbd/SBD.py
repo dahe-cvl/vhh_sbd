@@ -80,7 +80,7 @@ class SBD:
         final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
 
         # export final results
-        self.exportResultsToCsv(final_shot_l);
+        self.exportResultsToCsv(final_shot_l, "all");
 
     def runOnSingleVideo(self, video_filename):
         shot_boundaries_l = []
@@ -108,12 +108,12 @@ class SBD:
         final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
 
         # export final results
-        self.exportResultsToCsv(final_shot_l);
+        self.exportResultsToCsv(final_shot_l, vid_name.split('.')[0]);
 
-    def exportResultsToCsv(self, shot_l: list):
+    def exportResultsToCsv(self, shot_l: list, name: str):
         printCustom("Export shot list to csv file ... ", STDOUT_TYPE.INFO);
 
-        fp = open(self.config_instance.path_final_results + "/final_shots" + ".csv", 'w');
+        fp = open(self.config_instance.path_final_results + "/final_shots_" + str(name) + ".csv", 'w');
         fp.write("shot_id;vid_name;start;end" + "\n")
         for shot in shot_l:
             tmp_str = shot.convert2String();
