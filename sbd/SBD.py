@@ -311,8 +311,6 @@ class SBD:
             # csv_writer.writerow(row);
         fp.close();
 
-
-
     def convertShotBoundaries2Shots(self, shot_boundaries_np: np.ndarray):
         # convert results to shot instances
 
@@ -342,9 +340,11 @@ class SBD:
         shot = Shot(len(shot_boundaries_np), vidname_curr, shot_start, shot_end);
         shot_l.append(shot)
 
-        # print shot infos
-        for i in range(0, len(shot_l)):
-            shot_l[i].printShotInfo()
+
+        if(self.config_instance.debug_flag == 1):
+            # print shot infos
+            for i in range(0, len(shot_l)):
+                shot_l[i].printShotInfo()
 
         return shot_l;
 
