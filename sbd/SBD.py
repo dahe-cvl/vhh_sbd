@@ -82,7 +82,10 @@ class SBD:
         final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
 
         # export final results
-        self.exportResultsToCsv(final_shot_l, "all");
+        if (self.config_instance.save_final_results == 1):
+            self.exportResultsToCsv(final_shot_l, "all");
+
+        return final_shot_l;
 
     def runOnSingleVideo(self, video_filename):
         shot_boundaries_l = []
@@ -110,7 +113,10 @@ class SBD:
         final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
 
         # export final results
-        self.exportResultsToCsv(final_shot_l, vid_name.split('.')[0]);
+        if (self.config_instance.save_final_results == 1):
+            self.exportResultsToCsv(final_shot_l, vid_name.split('.')[0]);
+
+        return final_shot_l;
 
     def exportResultsToCsv(self, shot_l: list, name: str):
         printCustom("Export shot list to csv file ... ", STDOUT_TYPE.INFO);
@@ -247,7 +253,8 @@ class SBD:
         #print(results_np)
 
         # save raw results to file
-        self.exportRawResultsAsCsv_New(results_np)
+        if (self.config_instance.save_raw_results == 1):
+            self.exportRawResultsAsCsv_New(results_np)
 
         # calculate similarity measures of consecutive frames and threshold it
         #shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=0.8);
