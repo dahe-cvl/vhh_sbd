@@ -1,8 +1,7 @@
 
 
 Development:
-  DEBUG_FLAG: 0
-  b: 5
+  DEBUG_FLAG: 0             # 1 ... activate 0 ... deactivate
 
 PreProcessing:
   CONVERT2GRAY: 0           # 0 or 1   --> not working yet
@@ -10,10 +9,12 @@ PreProcessing:
   HISTOGRAM_EQU: 'none'  # "clahe" or "classic" or "none"
 
 SbdCore:
-  PATH_RAW_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/imc_results_raw/"
+  SAVE_RAW_RESULTS: 1    # 1 ... yes 0 ... no
+  PATH_RAW_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/results_raw/"
   PREFIX_RAW_RESULTS: "results_raw_"
   POSTFIX_RAW_RESULTS: "csv"
 
+  SAVE_FINAL_RESULTS: 1    # 1 ... yes 0 ... no
   PATH_FINAL_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/"
   PREFIX_FINAL_RESULTS: "results_"
   POSTFIX_FINAL_RESULTS: "csv"
