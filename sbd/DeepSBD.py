@@ -14,7 +14,7 @@ try:
     import accimage
 except ImportError:
     accimage = None
-
+from sbd.Configuration import Configuration
 
 class deepSBD(nn.Module):
     def __init__(self):
@@ -65,8 +65,9 @@ class deepSBD(nn.Module):
         return x
 
 class CandidateSelection:
-    def __init__(self):
-        print("start candidate selection ... ");
+    def __init__(self, config_instance: Configuration):
+        print("create instance of candidate selection module ... ");
+        self.config_instance = config_instance;
 
     def run(self, video_path):
         temporal_length = 16;

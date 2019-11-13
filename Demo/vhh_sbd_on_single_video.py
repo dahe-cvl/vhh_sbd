@@ -16,9 +16,13 @@ print("PYTHONPATH: ", str(os.environ['PYTHONPATH']))
 print("------------------------------------------")
 
 
-print("start")
-sbd_instance = SBD();
+printCustom("start process ... ", STDOUT_TYPE.INFO)
+
+config_file = "../config/config_single_video.yaml"
+sbd_instance = SBD(config_file);
 
 # run shot boundary detection process
 video_filename = "/caa/Projects02/vhh/private/database_nobackup/IMediaCities_datasets/IMC_database/videos/OFM_WStLA_Budget-Film-Rettungswesen-und-Krankenhaus_H264-1440x1080-High-CAVLC-12Mbps-KFIAuto-mp-Stereo48-256Kbps_24fps_128G.mp4"
 sbd_instance.runOnSingleVideo(video_filename);
+
+printCustom("process finished!", STDOUT_TYPE.INFO)

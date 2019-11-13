@@ -17,7 +17,8 @@ print("------------------------------------------")
 
 
 print("start")
-sbd_instance = SBD();
+config_file = "../config/config.yaml"
+sbd_instance = SBD(config_file);
 
 # run shot boundary detection process
 sbd_instance.run();

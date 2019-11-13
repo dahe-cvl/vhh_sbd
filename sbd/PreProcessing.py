@@ -5,12 +5,9 @@ from sbd.Configuration import Configuration
 
 
 class PreProcessing:
-    def __init__(self):
+    def __init__(self, config_instance: Configuration):
         printCustom("create instance of preprocessing ... ", STDOUT_TYPE.INFO);
-
-        config_file = "../config/config.yaml";
-        self.config_instance = Configuration(config_file);
-        self.config_instance.loadConfig();
+        self.config_instance = config_instance;
 
     def applyTransformOnImg(self, image: np.ndarray) -> np.ndarray:
         image_trans = image;

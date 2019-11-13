@@ -12,24 +12,26 @@ from sbd.DeepSBD import CandidateSelection
 import os
 
 class SBD:
-    def __init__(self):
+    def __init__(self, config_file: str):
         #printCustom("INFO: create instance of sbd ... ", STDOUT_TYPE.INFO);
-
-        self.vid_instance = None;
-        self.pre_proc_instance = PreProcessing();
-        self.evaluation_instance = Evaluation();
-
-        self.candidate_selection_instance = CandidateSelection()
-
-        self.net = None;
 
         # parse configuration
         #cwd = os.getcwd()
         #print(cwd)
 
-        config_file = "../config/config.yaml";
+        if (config_file == ""):
+            printCustom("No configuration file specified!", STDOUT_TYPE.ERROR)
+            exit()
+
+        #config_file = "../config/config.yaml";
         self.config_instance = Configuration(config_file);
         self.config_instance.loadConfig();
+
+        self.vid_instance = None;
+        self.pre_proc_instance = PreProcessing(self.config_instance);
+        self.evaluation_instance = Evaluation(self.config_instance);
+        self.candidate_selection_instance = CandidateSelection(self.config_instance)
+        self.net = None;
 
         self.src_path = "";
         self.filename_l = "";

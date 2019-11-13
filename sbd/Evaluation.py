@@ -11,16 +11,14 @@ import os
 
 
 class Evaluation:
-    def __init__(self):
-        print("create instance of ...")
+    def __init__(self, config_instance: Configuration):
+        print("create instance of evaluation ...")
+        self.config_instance = config_instance;
 
         self.precision = 0;
         self.recall = 0;
         self.f1score = 0;
 
-        config_file = "../config/config.yaml";
-        self.config_instance = Configuration(config_file);
-        self.config_instance.loadConfig();
 
     def exportResultsToCSV(self, res_np):
         print("start csv export ...");
