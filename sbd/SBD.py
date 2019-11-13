@@ -82,11 +82,39 @@ class SBD:
         # export final results
         self.exportResultsToCsv(final_shot_l);
 
+    def runOnSingleVideo(self, video_filename):
+        shot_boundaries_l = []
+
+        vid_name = video_filename.split('/')[-1];
+
+        printCustom("--------------------------", STDOUT_TYPE.INFO)
+        printCustom("Process video: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
+
+        # load video
+        self.vid_instance = Video();
+        self.vid_instance.load(video_filename);
+
+        # candidate selection
+        printCustom("Process candidate selection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
+        candidate_selection_result_np = self.candidate_selection_instance.run(video_filename)
+
+        # shot boundary detection
+        printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
+        shots_np = self.runWithCandidateSelection(candidate_selection_result_np)
+        shot_boundaries_l.append(shots_np);
+        shot_boundaries_np = np.squeeze(np.array(shot_boundaries_l));
+
+        # convert shot boundaries to final shots
+        final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
+
+        # export final results
+        self.exportResultsToCsv(final_shot_l);
+
     def exportResultsToCsv(self, shot_l: list):
         printCustom("Export shot list to csv file ... ", STDOUT_TYPE.INFO);
 
         fp = open(self.config_instance.path_final_results + "/final_shots" + ".csv", 'w');
-        fp.write("shot_id;vid_name;start;end" + "/n")
+        fp.write("shot_id;vid_name;start;end" + "\n")
         for shot in shot_l:
             tmp_str = shot.convert2String();
             fp.write(tmp_str + "\n");
@@ -300,15 +328,15 @@ class SBD:
             start_curr, stop_curr = shot_boundaries_np[i][1];
             vidname_curr = shot_boundaries_np[i][0];
 
-            shot_start = stop_prev;
-            shot_end = start_curr;
+            shot_start = int(stop_prev);
+            shot_end = int(start_curr);
             shot = Shot(i + 1, vidname_curr, shot_start, shot_end);
             shot_l.append(shot)
 
         vidname_curr = shot_boundaries_np[-1][0];
         start_curr, stop_curr = shot_boundaries_np[-1][1];
-        shot_start = stop_curr;
-        shot_end = self.vid_instance.number_of_frames;
+        shot_start = int(stop_curr);
+        shot_end = int(self.vid_instance.number_of_frames);
         shot = Shot(len(shot_boundaries_np), vidname_curr, shot_start, shot_end);
         shot_l.append(shot)
 
