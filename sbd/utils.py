@@ -1,4 +1,4 @@
-
+import sys
 
 class STDOUT_TYPE:
     INFO = 1
@@ -13,3 +13,17 @@ def printCustom(msg: str, type: int):
     else:
         print("FATAL ERROR: stdout type does not exist!")
         exit();
+
+def getCommandLineParams():
+    printCustom("read commandline arguments ... ", STDOUT_TYPE.INFO)
+    number_of_args = len(sys.argv);
+    print('Number of arguments:', len(sys.argv), 'arguments.')
+    print('Argument List:', str(sys.argv))
+
+    if (number_of_args == 1):
+        printCustom("There must be at least one commandline argument", STDOUT_TYPE.ERROR)
+        exit()
+
+    params = sys.argv;
+    print(params)
+    return params;
