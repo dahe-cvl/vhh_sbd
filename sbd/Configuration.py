@@ -10,6 +10,7 @@ class Configuration:
 
         self.debug_flag = None;
 
+        self.scale_factor = 0.0;
         self.flag_convert2Gray = None;
         self.flag_downscale = None;
         self.opt_histogram_equ = None;
@@ -47,6 +48,7 @@ class Configuration:
         self.debug_flag = developer_config['DEBUG_FLAG'];
 
         # pre-processing section
+        self.scale_factor = float(pre_processing_config['SCALE_FACTOR']);
         self.flag_convert2Gray = pre_processing_config['CONVERT2GRAY'];
         self.flag_downscale = pre_processing_config['DOWNSCALE'];
         self.opt_histogram_equ = pre_processing_config['HISTOGRAM_EQU'];
