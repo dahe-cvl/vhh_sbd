@@ -16,9 +16,13 @@ class PreProcessing:
         if(int(self.config_instance.flag_convert2Gray) == 1):
             image_trans = self.convertRGB2Gray(image_trans);
 
+        # crop image
+        if (self.config_instance.flag_crop == 1):
+            image_trans = self.crop(image_trans, (image_trans.shape[0], image_trans.shape[0]));
+
         # resize image
         if(self.config_instance.flag_downscale == 1):
-            dim = (int(image_trans.shape[0] * self.config_instance.scale_factor), int(image_trans.shape[1] * self.config_instance.scale_factor));
+            dim = (int(self.config_instance.resize_dim.split(',')[0]), int(self.config_instance.resize_dim.split(',')[1]));
             image_trans = self.resize(image_trans, dim)
 
         # apply histogram equalization
@@ -45,7 +49,33 @@ class PreProcessing:
         return img_gray;
 
     def crop(self, img: np.ndarray, dim: tuple):
-        img_crop = img;
+        crop_w, crop_h = dim;
+
+        crop_h_1 = 0;
+        crop_h_2 = 0;
+        crop_w_1 = 0;
+        crop_w_2 = 0;
+
+        img_h = img.shape[0];
+        img_w = img.shape[1];
+
+        crop_w_1 = int(img_w / 2) - int(crop_w / 2);
+        if (crop_w_1 < 0):
+            crop_w_1 = 0;
+
+        crop_w_2 = int(img_w / 2) + int(crop_w / 2);
+        if (crop_w_2 >= img_w):
+            crop_w_2 = img_w;
+
+        crop_h_1 = int(img_h / 2) - int(crop_h / 2);
+        if (crop_h_1 < 0):
+            crop_h_1 = 0;
+
+        crop_h_2 = int(img_h / 2) + int(crop_h / 2);
+        if (crop_h_2 >= img_h):
+            crop_h_2 = img_h;
+
+        img_crop = img[crop_h_1:crop_h_2, crop_w_1:crop_w_2]
         return img_crop;
 
     def resize(self, img: np.ndarray, dim: tuple):

@@ -15,6 +15,7 @@ try:
 except ImportError:
     accimage = None
 from sbd.Configuration import Configuration
+from sbd.PreProcessing import PreProcessing
 
 class deepSBD(nn.Module):
     def __init__(self):
@@ -68,6 +69,7 @@ class CandidateSelection:
     def __init__(self, config_instance: Configuration):
         print("create instance of candidate selection module ... ");
         self.config_instance = config_instance;
+        self.preprocessing = PreProcessing(self.config_instance);
 
     def run(self, video_path):
         temporal_length = 16;
@@ -106,6 +108,10 @@ class CandidateSelection:
                 if not status:
                     break
                 else:
+                    # apply preprecessing
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB);
+                    frame = self.preprocessing.applyTransformOnImg(frame)
+
                     frame = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)).convert('RGB')
                     frame = self.spatial_transform(frame)
                     image_clip.append(frame)
