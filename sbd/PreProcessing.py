@@ -18,7 +18,7 @@ class PreProcessing:
 
         # resize image
         if(self.config_instance.flag_downscale == 1):
-            dim = (int(image_trans.shape[0] / 3), int(image_trans.shape[1] / 3));
+            dim = (int(image_trans.shape[0] * self.config_instance.scale_factor), int(image_trans.shape[1] * self.config_instance.scale_factor));
             image_trans = self.resize(image_trans, dim)
 
         # apply histogram equalization
