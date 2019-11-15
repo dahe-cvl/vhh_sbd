@@ -1,0 +1,11 @@
+torchvision #+cu92 -f https://download.pytorch.org/whl/torch_stable.html
+torch  #+cu92 -f https://download.pytorch.org/whl/torch_stable.html
+keras_squeezenet
+keras==2.2.0
+tensorflow-gpu==1.12.0
+Pillow
+opencv-python
+matplotlib
+scipy
+PyYAML
+numpy
