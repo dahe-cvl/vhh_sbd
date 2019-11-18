@@ -36,7 +36,7 @@ class Configuration:
 
     def loadConfig(self):
         fp = open(self.config_file, 'r');
-        config = yaml.load(fp);
+        config = yaml.load(fp, Loader=yaml.BaseLoader);
 
         developer_config = config['Development'];
         pre_processing_config = config['PreProcessing'];
