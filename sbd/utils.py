@@ -20,8 +20,8 @@ def getCommandLineParams():
     print('Number of arguments:', len(sys.argv), 'arguments.')
     print('Argument List:', str(sys.argv))
 
-    if (number_of_args == 1):
-        printCustom("There must be at least one commandline argument", STDOUT_TYPE.ERROR)
+    if (number_of_args < 3):
+        printCustom("There must be at least two commandline argument(s)", STDOUT_TYPE.ERROR)
         exit()
 
     params = sys.argv;

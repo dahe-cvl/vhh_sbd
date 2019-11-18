@@ -15,15 +15,15 @@ print("------------------------------------------")
 
 printCustom("start process ... ", STDOUT_TYPE.INFO)
 
-# read configuration yaml file
-config_file = "../config/config_single_video.yaml"
-sbd_instance = SBD(config_file);
-
 # read commandline arguments
 params = getCommandLineParams();
 
 # run shot boundary detection process
 video_filename = params[1];
+config_file = params[2];
+
+# initialize and run sbd process
+sbd_instance = SBD(config_file);
 sbd_instance.runOnSingleVideo(video_filename);
 
 printCustom("process finished!", STDOUT_TYPE.INFO)
