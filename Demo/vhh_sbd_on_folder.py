@@ -16,9 +16,17 @@ print("PYTHONPATH: ", str(os.environ['PYTHONPATH']))
 print("------------------------------------------")
 
 
-print("start")
-config_file = "../config/config.yaml"
-sbd_instance = SBD(config_file);
+printCustom("start process ... ", STDOUT_TYPE.INFO)
+
+# read commandline arguments
+params = getCommandLineParams();
 
 # run shot boundary detection process
+#config_file = params[2];
+config_file = "../config/config.yaml"
+
+# initialize and run sbd process
+sbd_instance = SBD(config_file);
 sbd_instance.run();
+
+printCustom("process finished!", STDOUT_TYPE.INFO)
