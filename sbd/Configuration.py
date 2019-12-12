@@ -27,7 +27,7 @@ class Configuration:
         self.path_final_results = None;
 
         self.path_videos = None;
-        self.threshold = None;
+        self.threshold = 0.0;
         self.backbone_cnn = None;
         self.similarity_metric = None;
 
@@ -67,7 +67,7 @@ class Configuration:
         self.path_final_results = sbd_core_config['PATH_FINAL_RESULTS'];
 
         self.path_videos = sbd_core_config['PATH_VIDEOS'];
-        self.threshold = sbd_core_config['THRESHOLD'];
+        self.threshold = float(sbd_core_config['THRESHOLD']);
         self.backbone_cnn = sbd_core_config['BACKBONE_CNN'];
         self.similarity_metric = sbd_core_config['SIMILARITY_METRIC'];
 
