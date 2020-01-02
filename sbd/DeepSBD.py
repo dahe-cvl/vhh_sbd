@@ -67,7 +67,7 @@ class CandidateSelection:
         self.preprocessing = PreProcessing(self.config_instance);
 
     def run(self, video_path):
-        model_path = "/caa/Homes01/dhelm/working/pycharm_sbd_clipshot/ClipShots_basline/pretrained/Alexnet-final.pth"
+        model_path = self.config_instance.pretrained_model
         temporal_length = 16;
         batch_size = 32;
 

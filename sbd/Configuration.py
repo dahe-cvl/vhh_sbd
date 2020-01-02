@@ -42,6 +42,7 @@ class Configuration:
         pre_processing_config = config['PreProcessing'];
         post_processing_config = config['PostProcessing'];
         sbd_core_config = config['SbdCore'];
+        candidate_selection_config = config['CandidateSelection'];
         visualization_config = config['Visualization'];
         evaluation_config = config['Evaluation'];
 
@@ -71,6 +72,9 @@ class Configuration:
         self.threshold = float(sbd_core_config['THRESHOLD']);
         self.backbone_cnn = sbd_core_config['BACKBONE_CNN'];
         self.similarity_metric = sbd_core_config['SIMILARITY_METRIC'];
+
+        # candidate_selection_config
+        self.pretrained_model = candidate_selection_config['PATH_PRETRAINED_MODEL'];
 
         # evaluation section
         self.path_eval_results = evaluation_config['PATH_EVAL_RESULTS'];

@@ -27,6 +27,9 @@ SbdCore:
   BACKBONE_CNN: "squeezenet"    # vgg16 OR squeezenet
   SIMILARITY_METRIC: "cosine"    # euclidean OR cosine
 
+CandidateSelection:
+  PATH_PRETRAINED_MODEL: "/caa/Homes01/dhelm/working/pycharm_sbd_clipshot/ClipShots_basline/pretrained/Alexnet-final.pth"
+
 PostProcessing:
   c: 2
   d: 5
