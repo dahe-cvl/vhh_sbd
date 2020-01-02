@@ -73,12 +73,19 @@ class SBD:
             # shot boundary detection
             printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
             shots_np = self.runWithCandidateSelection(candidate_selection_result_np)
-            #print(shots_np)
-            shot_boundaries_l.append(shots_np);
+
+            # convert shot boundaries to final shots
+            shots_l = self.convertShotBoundaries2Shots(shots_np);
+
+            # export final results
+            if (self.config_instance.save_final_results == 1):
+                self.exportResultsToCsv(shots_l, str(vid_name.split('.')[0]));
+
+            shot_boundaries_l.extend(shots_np);
+
         shot_boundaries_np = np.squeeze(np.array(shot_boundaries_l));
 
         # convert shot boundaries to final shots
-        print(shot_boundaries_np.shape)
         final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
 
         # export final results
@@ -237,6 +244,7 @@ class SBD:
 
         # convert shot boundaries to shots
         shots_np = np.array(shot_l)
+
         return shots_np;
 
     def exportRawResultsAsCsv(self, results_np: np.ndarray):

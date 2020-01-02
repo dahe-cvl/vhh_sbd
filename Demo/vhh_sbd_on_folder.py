@@ -23,7 +23,7 @@ printCustom("start process ... ", STDOUT_TYPE.INFO)
 
 # run shot boundary detection process
 #config_file = params[2];
-config_file = "config/config.yaml"
+config_file = "../config/config.yaml"
 
 # initialize and run sbd process
 sbd_instance = SBD(config_file);
