@@ -8,20 +8,20 @@ class Configuration:
 
         self.config_file = config_file;
 
-        self.debug_flag = None;
+        self.debug_flag = -1;
 
         self.resize_dim = None;
-        self.flag_convert2Gray = None;
-        self.flag_crop = None;
-        self.flag_downscale = None;
+        self.flag_convert2Gray = -1;
+        self.flag_crop = -1;
+        self.flag_downscale = -1;
         self.opt_histogram_equ = None;
 
-        self.save_raw_results = None;
+        self.save_raw_results = -1;
         self.path_postfix_raw_results = None;
         self.path_prefix_raw_results = None;
         self.path_raw_results = None;
 
-        self.save_final_results = None;
+        self.save_final_results = -1;
         self.path_prefix_final_results = None;
         self.path_postfix_final_results = None;
         self.path_final_results = None;
@@ -32,7 +32,7 @@ class Configuration:
         self.similarity_metric = None;
 
         self.path_eval_results = None;
-        self.save_eval_results = None;
+        self.save_eval_results = -1;
 
     def loadConfig(self):
         fp = open(self.config_file, 'r');
@@ -46,22 +46,23 @@ class Configuration:
         evaluation_config = config['Evaluation'];
 
         # developer_config section
-        self.debug_flag = developer_config['DEBUG_FLAG'];
+        self.debug_flag = int(developer_config['DEBUG_FLAG']);
 
         # pre-processing section
-        self.resize_dim = pre_processing_config['RESIZE_DIM'];
-        self.flag_convert2Gray = pre_processing_config['CONVERT2GRAY'];
-        self.flag_crop = pre_processing_config['CROP'];
-        self.flag_downscale = pre_processing_config['DOWNSCALE'];
+        self.resize_dim = (int(pre_processing_config['RESIZE_DIM'].split(',')[0]),
+                           int(pre_processing_config['RESIZE_DIM'].split(',')[1]));
+        self.flag_convert2Gray = int(pre_processing_config['CONVERT2GRAY']);
+        self.flag_crop = int(pre_processing_config['CROP']);
+        self.flag_downscale = int(pre_processing_config['DOWNSCALE']);
         self.opt_histogram_equ = pre_processing_config['HISTOGRAM_EQU'];
 
         # sbd_core_config section
-        self.save_raw_results = sbd_core_config['SAVE_RAW_RESULTS'];
+        self.save_raw_results = int(sbd_core_config['SAVE_RAW_RESULTS']);
         self.path_postfix_raw_results = sbd_core_config['POSTFIX_RAW_RESULTS'];
         self.path_prefix_raw_results = sbd_core_config['PREFIX_RAW_RESULTS'];
         self.path_raw_results = sbd_core_config['PATH_RAW_RESULTS'];
 
-        self.save_final_results = sbd_core_config['SAVE_FINAL_RESULTS'];
+        self.save_final_results = int(sbd_core_config['SAVE_FINAL_RESULTS']);
         self.path_prefix_final_results = sbd_core_config['PREFIX_FINAL_RESULTS'];
         self.path_postfix_final_results = sbd_core_config['POSTFIX_FINAL_RESULTS'];
         self.path_final_results = sbd_core_config['PATH_FINAL_RESULTS'];
@@ -73,7 +74,7 @@ class Configuration:
 
         # evaluation section
         self.path_eval_results = evaluation_config['PATH_EVAL_RESULTS'];
-        self.save_eval_results = evaluation_config['SAVE_EVAL_RESULTS'];
+        self.save_eval_results = int(evaluation_config['SAVE_EVAL_RESULTS']);
 
 
 

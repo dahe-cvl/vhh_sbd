@@ -17,12 +17,12 @@ class PreProcessing:
             image_trans = self.convertRGB2Gray(image_trans);
 
         # crop image
-        if (self.config_instance.flag_crop == 1):
+        if (int(self.config_instance.flag_crop) == 1):
             image_trans = self.crop(image_trans, (image_trans.shape[0], image_trans.shape[0]));
 
         # resize image
         if(self.config_instance.flag_downscale == 1):
-            dim = (int(self.config_instance.resize_dim.split(',')[0]), int(self.config_instance.resize_dim.split(',')[1]));
+            dim = self.config_instance.resize_dim;
             image_trans = self.resize(image_trans, dim)
 
         # apply histogram equalization
