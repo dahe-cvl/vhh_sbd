@@ -12,20 +12,20 @@ PreProcessing:
 
 SbdCore:
   SAVE_RAW_RESULTS: 1       # 1 ... yes 0 ... no
-  PATH_RAW_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/results_raw/"
+  PATH_RAW_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/efilms/results_raw/"
   PREFIX_RAW_RESULTS: "results_raw_"
   POSTFIX_RAW_RESULTS: "csv"
 
   SAVE_FINAL_RESULTS: 1     # 1 ... yes 0 ... no
-  PATH_FINAL_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/"
+  PATH_FINAL_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/efilms/"
   PREFIX_FINAL_RESULTS: "results_"
   POSTFIX_FINAL_RESULTS: "csv"
 
-  #PATH_VIDEOS: "/caa/Projects02/vhh/private/dzafirova/sbd_efilms_db_20190621/videos_converted/"
-  PATH_VIDEOS: "/caa/Projects02/vhh/private/database_nobackup/IMediaCities_datasets/IMC_database/videos/"
+  PATH_VIDEOS: "/caa/Projects02/vhh/private/dzafirova_nobackup/sbd_efilms_db_20190621/videos_converted/"
+  #PATH_VIDEOS: "/caa/Projects02/vhh/private/database_nobackup/IMediaCities_datasets/IMC_database/videos/"
   THRESHOLD: 0.8
-  BACKBONE_CNN: "squeeze"
-  SIMILARITY_METRIC: "cosine"
+  BACKBONE_CNN: "squeezenet"    # vgg16 OR squeezenet
+  SIMILARITY_METRIC: "cosine"    # euclidean OR cosine
 
 PostProcessing:
   c: 2

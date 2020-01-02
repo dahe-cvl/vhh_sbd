@@ -19,11 +19,11 @@ print("------------------------------------------")
 printCustom("start process ... ", STDOUT_TYPE.INFO)
 
 # read commandline arguments
-params = getCommandLineParams();
+#params = getCommandLineParams();
 
 # run shot boundary detection process
 #config_file = params[2];
-config_file = "../config/config.yaml"
+config_file = "config/config.yaml"
 
 # initialize and run sbd process
 sbd_instance = SBD(config_file);

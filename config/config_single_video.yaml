@@ -24,7 +24,7 @@ SbdCore:
   #PATH_VIDEOS: "/caa/Projects02/vhh/private/dzafirova/sbd_efilms_db_20190621/videos_converted/"
   PATH_VIDEOS: "/caa/Projects02/vhh/private/database_nobackup/IMediaCities_datasets/IMC_database/videos/"
   THRESHOLD: 0.8
-  BACKBONE_CNN: "squeeze"
+  BACKBONE_CNN: "squeezenet"    # vgg16 OR squeezenet
   SIMILARITY_METRIC: "cosine"
 
 PostProcessing:
