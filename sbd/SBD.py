@@ -136,18 +136,12 @@ class SBD:
         self.vid_instance.load(src_path + "/" + vid_name);
 
         # initial pre-trained model
-        if (self.config_instance.backbone_cnn == "squeeze"):
-            self.net = Squeezenet()
-        elif (self.config_instance.backbone_cnn == "vgg19"):
-            self.net = VGG19a();
-        else:
-            self.net = None;
-            printCustom("No valid backbone cnn network selected!", STDOUT_TYPE.ERROR)
-            exit();
+        self.net = PyTorchModel(model_arch=self.config_instance.backbone_cnn);
 
         number_of_frames = int(self.vid_instance.number_of_frames);
         #print(number_of_frames)
         results_l = [];
+        shot_l = []
         for i in range(1, number_of_frames):
             #print("-------------------")
             #print("process " + str(i))
@@ -167,43 +161,30 @@ class SBD:
             #print("process core part ... ")
             feature_prev = self.net.getFeatures(frm_trans_prev)
             feature_curr = self.net.getFeatures(frm_trans_curr)
-
             result = self.calculateDistance(feature_prev, feature_curr)
-            #print(result)
-            results_l.append(result)
 
-        results_np = np.array(results_l)
-        #print(results_np.shape)
+            if (int(self.config_instance.save_raw_results) == 1):
+                results_l.append([idx_prev, idx_curr, result])
+
+            if (result > self.config_instance.threshold):
+                printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
+                shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
 
         # save raw results to file
-        self.exportRawResultsAsCsv(results_np)
-
-        # calculate similarity measures of consecutive frames and threshold it
-        #shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=0.8);
-
-        #print("postprocess results ... ")
-
-        # export shot boundaries as csv
-        #self.exportResultsAsCsv(shot_boundaries_np);
+        if (int(self.config_instance.save_raw_results) == 1):
+            print("save raw results ... ")
+            results_np = np.array(results_l)
+            self.exportRawResultsAsCsv_New(results_np)
 
         # convert shot boundaries to shots
-        #shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
-        shot_l = [];
-        #printCustom("successfully finished!", STDOUT_TYPE.INFO);
-        return shot_l;
+        shots_np = np.array(shot_l)
+        return shots_np;
 
     def runWithCandidateSelection(self, candidates_np):
         #printCustom("process shot detection ... ", STDOUT_TYPE.INFO);
 
         # initial pre-trained model
-        if(self.config_instance.backbone_cnn == "squeeze"):
-            self.net = Squeezenet();
-        elif(self.config_instance.backbone_cnn == "vgg19"):
-            self.net = VGG19a();
-        else:
-            self.net = None;
-            printCustom("No valid backbone cnn network selected!", STDOUT_TYPE.ERROR)
-            exit();
+        self.net = PyTorchModel(model_arch=self.config_instance.backbone_cnn);
 
         results_l = [];
         shot_l = []
@@ -230,44 +211,32 @@ class SBD:
                 #print(frm_prev.shape)
                 #print(frm_curr.shape)
 
-                # print("preprocess images ... ")
-                # dim = (int(self.vid_instance.width / 2), int(self.vid_instance.height / 2));
                 frm_trans_prev = self.pre_proc_instance.applyTransformOnImg(frm_prev)
                 frm_trans_curr = self.pre_proc_instance.applyTransformOnImg(frm_curr)
-
 
                 # print("process core part ... ")
                 feature_prev = self.net.getFeatures(frm_trans_prev)
                 feature_curr = self.net.getFeatures(frm_trans_curr)
                 result = self.calculateDistance(feature_prev, feature_curr)
 
+                if (int(self.config_instance.save_raw_results) == 1):
+                    results_per_range.append(result)
+
                 if(result > self.config_instance.threshold):
                     printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
                     shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
 
-                results_per_range.append(result)
-
-            results_l.append([start, end, results_per_range])
-
-        results_np = np.array(results_l)
-        #print(results_np)
+            if (int(self.config_instance.save_raw_results) == 1):
+                results_l.append([start, end, results_per_range])
 
         # save raw results to file
-        if (self.config_instance.save_raw_results == 1):
+        if (int(self.config_instance.save_raw_results) == 1):
+            print("save raw results ... ")
+            results_np = np.array(results_l)
             self.exportRawResultsAsCsv_New(results_np)
 
-        # calculate similarity measures of consecutive frames and threshold it
-        #shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=0.8);
-
-        #print("postprocess results ... ")
-
-        # export shot boundaries as csv
-        #self.exportResultsAsCsv(shot_boundaries_np);
-
         # convert shot boundaries to shots
-        #shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
         shots_np = np.array(shot_l)
-        #printCustom("successfully finished!", STDOUT_TYPE.INFO);
         return shots_np;
 
     def exportRawResultsAsCsv(self, results_np: np.ndarray):
