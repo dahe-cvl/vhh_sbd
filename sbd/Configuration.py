@@ -16,6 +16,8 @@ class Configuration:
         self.flag_downscale = -1;
         self.opt_histogram_equ = None;
 
+        self.activate_candidate_selection = -1;
+
         self.save_raw_results = -1;
         self.path_postfix_raw_results = None;
         self.path_prefix_raw_results = None;
@@ -31,8 +33,12 @@ class Configuration:
         self.backbone_cnn = None;
         self.similarity_metric = None;
 
+        self.pretrained_model = None;
+
         self.path_eval_results = None;
+        self.path_raw_results_eval = None;
         self.save_eval_results = -1;
+        self.path_gt_data = None;
 
     def loadConfig(self):
         fp = open(self.config_file, 'r');
@@ -58,6 +64,7 @@ class Configuration:
         self.opt_histogram_equ = pre_processing_config['HISTOGRAM_EQU'];
 
         # sbd_core_config section
+        self.activate_candidate_selection = int(sbd_core_config['CANDIDATE_SELECTION']);
         self.save_raw_results = int(sbd_core_config['SAVE_RAW_RESULTS']);
         self.path_postfix_raw_results = sbd_core_config['POSTFIX_RAW_RESULTS'];
         self.path_prefix_raw_results = sbd_core_config['PREFIX_RAW_RESULTS'];
@@ -77,8 +84,11 @@ class Configuration:
         self.pretrained_model = candidate_selection_config['PATH_PRETRAINED_MODEL'];
 
         # evaluation section
+        self.path_raw_results_eval = evaluation_config['PATH_RAW_RESULTS'];
         self.path_eval_results = evaluation_config['PATH_EVAL_RESULTS'];
         self.save_eval_results = int(evaluation_config['SAVE_EVAL_RESULTS']);
+        self.path_gt_data = evaluation_config['PATH_GT_ANNOTATIONS'];
+
 
 
 

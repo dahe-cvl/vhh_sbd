@@ -23,13 +23,13 @@ class SBD:
             printCustom("No configuration file specified!", STDOUT_TYPE.ERROR)
             exit()
 
-        #config_file = "../config/config.yaml";
+        #config_file = "../config/config_debug.yaml";
         self.config_instance = Configuration(config_file);
         self.config_instance.loadConfig();
 
         self.vid_instance = None;
         self.pre_proc_instance = PreProcessing(self.config_instance);
-        self.evaluation_instance = Evaluation(self.config_instance);
+        #self.evaluation_instance = Evaluation(self.config_instance);
         self.candidate_selection_instance = CandidateSelection(self.config_instance)
         self.net = None;
 
@@ -66,16 +66,22 @@ class SBD:
             self.vid_instance = Video();
             self.vid_instance.load(self.src_path + "/" + vid_name);
 
-            # candidate selection
-            printCustom("Process candidate selection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
-            candidate_selection_result_np = self.candidate_selection_instance.run(self.src_path + "/" + vid_name)
+            if (self.config_instance.activate_candidate_selection == 1):
+                # candidate selection
+                printCustom("Process candidate selection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
+                candidate_selection_result_np = self.candidate_selection_instance.run(self.src_path + "/" + vid_name)
 
-            # shot boundary detection
-            printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
-            shots_np = self.runWithCandidateSelection(candidate_selection_result_np)
+                # shot boundary detection
+                printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
+                shots_np = self.runWithCandidateSelection(candidate_selection_result_np)
+            elif (self.config_instance.activate_candidate_selection == 0):
+                # shot boundary detection
+                printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
+                shots_np = self.runWithoutCandidateSelection(self.src_path, vid_name)
 
             # convert shot boundaries to final shots
-            shots_l = self.convertShotBoundaries2Shots(shots_np);
+            if(len(shots_np) > 0):
+                shots_l = self.convertShotBoundaries2Shots(shots_np);
 
             # export final results
             if (self.config_instance.save_final_results == 1):
@@ -86,7 +92,8 @@ class SBD:
         shot_boundaries_np = np.squeeze(np.array(shot_boundaries_l));
 
         # convert shot boundaries to final shots
-        final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
+        if (len(shot_boundaries_np) > 0):
+            final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
 
         # export final results
         if (self.config_instance.save_final_results == 1):
@@ -96,6 +103,7 @@ class SBD:
 
     def runOnSingleVideo(self, video_filename):
         shot_boundaries_l = []
+        self.src_path = self.config_instance.path_videos;
 
         vid_name = video_filename.split('/')[-1];
 
@@ -106,15 +114,22 @@ class SBD:
         self.vid_instance = Video();
         self.vid_instance.load(video_filename);
 
-        # candidate selection
-        printCustom("Process candidate selection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
-        candidate_selection_result_np = self.candidate_selection_instance.run(video_filename)
+        shot_boundaries_np = None;
+        if (self.config_instance.activate_candidate_selection == 1):
+            # candidate selection
+            printCustom("Process candidate selection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
+            candidate_selection_result_np = self.candidate_selection_instance.run(video_filename)
 
-        # shot boundary detection
-        printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
-        shots_np = self.runWithCandidateSelection(candidate_selection_result_np)
-        shot_boundaries_l.append(shots_np);
-        shot_boundaries_np = np.squeeze(np.array(shot_boundaries_l));
+            # shot boundary detection
+            printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
+            shots_np = self.runWithCandidateSelection(candidate_selection_result_np)
+            shot_boundaries_l.append(shots_np);
+            shot_boundaries_np = np.squeeze(np.array(shot_boundaries_l));
+
+        elif (self.config_instance.activate_candidate_selection == 0):
+            # shot boundary detection
+            printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
+            shot_boundaries_np = self.runWithoutCandidateSelection(self.src_path, vid_name)
 
         # convert shot boundaries to final shots
         final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np);
@@ -169,9 +184,10 @@ class SBD:
             feature_prev = self.net.getFeatures(frm_trans_prev)
             feature_curr = self.net.getFeatures(frm_trans_curr)
             result = self.calculateDistance(feature_prev, feature_curr)
+            #print(result)
 
             if (int(self.config_instance.save_raw_results) == 1):
-                results_l.append([idx_prev, idx_curr, result])
+                results_l.append(result)
 
             if (result > self.config_instance.threshold):
                 printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
@@ -180,7 +196,9 @@ class SBD:
         # save raw results to file
         if (int(self.config_instance.save_raw_results) == 1):
             print("save raw results ... ")
-            results_np = np.array(results_l)
+            raw_results_l = []
+            raw_results_l.append([1, number_of_frames, results_l])
+            results_np = np.array(raw_results_l)
             self.exportRawResultsAsCsv_New(results_np)
 
         # convert shot boundaries to shots
