@@ -11,9 +11,10 @@ import os
 
 
 class Evaluation:
-    def __init__(self, config_instance: Configuration):
+    def __init__(self, config_file: str):
         print("create instance of evaluation ...")
-        self.config_instance = config_instance;
+        self.config_instance = Configuration(config_file);
+        self.config_instance.loadConfig();
 
         self.precision = 0;
         self.recall = 0;
@@ -244,7 +245,7 @@ class Evaluation:
             distances_l = results_np[i][3]
             distances_np = np.array(distances_l).astype('float');
 
-            active = True;
+            active = False;
             if(active == True):
                 # just take the maximum of each range
                 min_val = np.min(distances_np);
@@ -277,8 +278,8 @@ class Evaluation:
     def evaluation(self, result_np):
         #print("NOT IMPLEMENTED YET");
 
-        src_path = "/caa/Projects02/vhh/private/dzafirova/sbd_efilms_db_20190621/videos_converted/";
-        gt_data = "/caa/Projects02/vhh/private/database_nobackup/VHH_datasets/annotations/ShotBoundaryDetection/efilms/shotBoundaries_annotations_v8_20190523.csv";
+        src_path = self.config_instance.path_videos;
+        gt_data = self.config_instance.path_gt_data;
 
         vid_name = result_np[0][0];
         video_obj = Video();
@@ -510,17 +511,15 @@ class Evaluation:
 
 
     def calculateEvaluationMetrics_New(self):
-        vid_name_list = os.listdir(self.config_instance.path_raw_results)
-        #vid_name_list = ['results_raw_EF-NS_004_OeFM.csv', 'results_raw_EF-NS_013_OeFM.csv',
-        #                 'results_raw_EF-NS_016_OeFM.csv', 'results_raw_EF-NS_009_OeFM.csv']
-                         #'results_raw_EF-NS_043_USHMM.csv', 'results_raw_EF-NS_060_OeFM_R03-01.csv',
-                         #'results_raw_EF-NS_095_OeFM.csv']
+        vid_name_list = os.listdir(str(self.config_instance.path_raw_results_eval))
+        print(vid_name_list)
 
         final_results = []
         fp_video_based = None;
         #thresholds_l = [1.0, 0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60, 0.55,
-        #                0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
-        thresholds_l = [0.80]
+        #0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
+        thresholds_l = [0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60, 0.55,
+                        0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05]
         for t in thresholds_l:
         #for s in range(0, 1000):
             tp_sum = 0;
@@ -538,11 +537,10 @@ class Evaluation:
 
             results_l = [];
             for vid_name in vid_name_list:
-                results_np = self.loadRawResultsAsCsv_New(self.config_instance.path_raw_results + "/" + vid_name)
+                results_np = self.loadRawResultsAsCsv_New(self.config_instance.path_raw_results_eval + "/" + vid_name)
 
                 # calculate similarity measures of consecutive frames and threshold it
                 shot_boundaries_np1 = self.calculateSimilarityMetric_new(results_np, threshold=THRESHOLD);
-                #print(shot_boundaries_np1)
 
                 if (len(shot_boundaries_np1) != 0):
                     tp, fp, tn, fn = self.evaluation(shot_boundaries_np1);

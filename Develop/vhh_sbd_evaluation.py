@@ -6,7 +6,8 @@ import numpy as np
 
 printCustom("Welcome to the sbd evauation framework!", STDOUT_TYPE.INFO);
 
-sbd_eval_instance = Evaluation();
+config_file = "../config/config_debug.yaml"
+sbd_eval_instance = Evaluation(config_file);
 sbd_eval_instance.run();
 
 
