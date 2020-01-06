@@ -247,7 +247,7 @@ class SBD:
                 if (int(self.config_instance.save_raw_results) == 1):
                     results_per_range.append(result)
 
-                if(result > self.config_instance.threshold):
+                if(result >= self.config_instance.threshold):
                     printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
                     shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
 

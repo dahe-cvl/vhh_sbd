@@ -221,7 +221,9 @@ class Evaluation:
         return final_np
 
     def calculateSimilarityMetric(self, results_np: np.ndarray, threshold=0.8):
+        '''
         vid_name = results_np[0][0];
+        start = results_np[i][1]
         distances_np = results_np[:, 1:2].astype('float');
 
         idx_max = np.where(distances_np > threshold)[0]
@@ -233,8 +235,43 @@ class Evaluation:
         shot_boundaries_np = np.array(shot_boundaries_l)
         #print(shot_boundaries_np.shape)
         #print(shot_boundaries_np)
+        '''
 
+        shot_boundaries_l = []
+        for i in range(0, len(results_np)):
+            vid_name = results_np[i][0]
+            start = results_np[i][1]
+            end = results_np[i][2]
+            distances_l = results_np[i][3]
+            distances_np = np.array(distances_l).astype('float');
+
+            if(self.config_instance.activate_candidate_selection == 0):
+                # just take all frame positions over specified threshold
+                idx_max = np.where(distances_np > threshold)[0]
+                #print(idx_max)
+
+                if(len(idx_max) == 1) :
+                    final_idx = idx_max + start
+                    shot_boundaries_l.append([vid_name, final_idx, final_idx + 1])
+                elif(len(idx_max) > 1):
+                    final_idx = idx_max + start
+                    for a in range(0, len(final_idx)):
+                        shot_boundaries_l.append([vid_name, final_idx[a], final_idx[a] + 1])
+            elif(self.config_instance.activate_candidate_selection == 1):
+                # just take all frame positions over specified threshold
+                idx_max = np.argmax(distances_np)
+                final_idx = idx_max + start
+                shot_boundaries_l.append([vid_name, final_idx, final_idx + 1])
+
+            # print(final_idx)
+
+            # cv2.imwrite("./test_result" + str(i) + "_1.png", self.vid_instance.getFrame(idx_max[i]))
+            # cv2.imwrite("./test_result" + str(i) + "_2.png", self.vid_instance.getFrame(idx_max[i] + 1))
+
+        shot_boundaries_np = np.array(shot_boundaries_l)
+        #print(shot_boundaries_np)
         return shot_boundaries_np;
+
 
     def calculateSimilarityMetric_new(self, results_np: np.ndarray, threshold=0.8):
         shot_boundaries_l = []
@@ -275,13 +312,16 @@ class Evaluation:
         shot_boundaries_np = np.array(shot_boundaries_l)
         return shot_boundaries_np;
 
-    def evaluation(self, result_np):
+    def evaluation(self, result_np, vid_name):
         #print("NOT IMPLEMENTED YET");
 
         src_path = self.config_instance.path_videos;
         gt_data = self.config_instance.path_gt_data;
 
-        vid_name = result_np[0][0];
+        vid_name = vid_name.replace('results_raw_', '')
+        vid_name = vid_name.replace('.csv', '')
+        #print(vid_name)
+        #vid_name = result_np[0][0];
         video_obj = Video();
         video_obj.load(src_path + "/" + str(vid_name) + ".mp4");
 
@@ -338,13 +378,10 @@ class Evaluation:
         #print("---------")
         #print(sb_pred_np)
 
-
         idx = np.where(vid_name == gt_np)[0]
         sb_gt_np = gt_np[idx];
         #print("---------")
         #print(sb_gt_np)
-
-
 
         # video-based predictions
         tp_cnt = 0;
@@ -356,7 +393,10 @@ class Evaluation:
             prev_pos = j - 1;
 
             search_tuple = (prev_pos, curr_pos);
-            list_pred_tmp = np.squeeze(sb_pred_np[:, 1:]).tolist();
+            if(len(sb_pred_np) > 0 ):
+                list_pred_tmp = np.squeeze(sb_pred_np[:, 1:]).tolist();
+            else:
+                list_pred_tmp = []
             list_gt_tmp = np.squeeze(sb_gt_np[:, 1:]).tolist();
 
             gt_flag = False;
@@ -418,7 +458,7 @@ class Evaluation:
         if(tp_cnt + fp_cnt != 0):
             precision = tp_cnt / (tp_cnt + fp_cnt);
         else:
-            precision = 0;
+            precision = 1;
 
         if (tp_cnt + fn_cnt != 0):
             recall = tp_cnt / (tp_cnt + fn_cnt);
@@ -516,10 +556,10 @@ class Evaluation:
 
         final_results = []
         fp_video_based = None;
-        #thresholds_l = [1.0, 0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60, 0.55,
-        #0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
-        thresholds_l = [0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60, 0.55,
-                        0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05]
+        thresholds_l = [1.0, 0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60, 0.55,
+                        0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
+        #thresholds_l = [0.94,0.93,0.92,0.91,0.90,0.89, 0.88, 0.87, 0.86,  0.85, 0.84, 0.83, 0.82,0.81,  0.8]
+        #thresholds_l = [1.0]
         for t in thresholds_l:
         #for s in range(0, 1000):
             tp_sum = 0;
@@ -540,27 +580,29 @@ class Evaluation:
                 results_np = self.loadRawResultsAsCsv_New(self.config_instance.path_raw_results_eval + "/" + vid_name)
 
                 # calculate similarity measures of consecutive frames and threshold it
-                shot_boundaries_np1 = self.calculateSimilarityMetric_new(results_np, threshold=THRESHOLD);
+                shot_boundaries_np1 = self.calculateSimilarityMetric(results_np, threshold=THRESHOLD);
+                print(shot_boundaries_np1)
+                #continue
 
-                if (len(shot_boundaries_np1) != 0):
-                    tp, fp, tn, fn = self.evaluation(shot_boundaries_np1);
-                    p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp, fp, tn, fn);
+                #if (len(shot_boundaries_np1) != 0):
+                tp, fp, tn, fn = self.evaluation(shot_boundaries_np1, vid_name);
+                p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp, fp, tn, fn);
 
-                    if (int(self.config_instance.save_eval_results) == 1):
-                        tmp_str = str(vid_name.replace('results_raw_', '').split('.')[0]) + ";" + str(tp) + ";" + str(fp) + \
-                                  ";" + str(tn) + ";" + str(fn) + ";" + str(p) + ";" + str(r) + ";" + str(acc) + ";" + \
-                                  str(f1_score) + ";" + str(tp_rate) + ";" + str(fp_rate);
-                        print(tmp_str);
-                        fp_video_based.write(tmp_str + "\n")
-                else:
-                    tp = 0;
-                    fp = 0;
-                    tn = 0;
-                    fn = 0;
-                    p = 0;
-                    r = 0;
-                    acc = 0;
-                    f1_score = 0;
+                if (int(self.config_instance.save_eval_results) == 1):
+                    tmp_str = str(vid_name.replace('results_raw_', '').split('.')[0]) + ";" + str(tp) + ";" + str(fp) + \
+                              ";" + str(tn) + ";" + str(fn) + ";" + str(p) + ";" + str(r) + ";" + str(acc) + ";" + \
+                              str(f1_score) + ";" + str(tp_rate) + ";" + str(fp_rate);
+                    print(tmp_str);
+                    fp_video_based.write(tmp_str + "\n")
+                #else:
+                #    tp = 0;
+                #    fp = 0;
+                #    tn = 0;
+                #    fn = 0;
+                #    p = 0;
+                #    r = 0;
+                #    acc = 0;
+                #    f1_score = 0;
                 results_l.append([vid_name, tp, fp, tn, fn, p, r, acc, f1_score])
 
                 tp_sum = tp_sum + tp;
