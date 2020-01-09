@@ -191,6 +191,22 @@ class Evaluation:
         #print(dist_np.shape)
         return dist_np
 
+    def loadRawResultsAsFromNumpy(self, filepath):
+        # save raw results to file
+        print("load raw results from numpy ...")
+        vid_name = filepath.split('/')[-1].split('.')[0];
+        raw_results = np.load(filepath, allow_pickle=True)
+
+        start = raw_results[0][0]
+        stop = raw_results[0][1]
+        dist_l = raw_results[0][2]
+        dist_np = np.array(dist_l).astype('float')
+
+        array_list = []
+        array_list.append([vid_name.replace("results_raw_", ""), start, stop, dist_np])
+        array_np = np.array(array_list)
+        return array_np;
+
     def loadRawResultsAsCsv_New(self, filepath):
         # save raw results to file
         fp = open(filepath, mode='r');
@@ -248,13 +264,15 @@ class Evaluation:
             if(self.config_instance.activate_candidate_selection == 0):
                 # just take all frame positions over specified threshold
                 idx_max = np.where(distances_np > threshold)[0]
-                #print(idx_max)
+                print(idx_max)
 
                 if(len(idx_max) == 1) :
-                    final_idx = idx_max + start
+                    final_idx = idx_max #+ start
                     shot_boundaries_l.append([vid_name, final_idx, final_idx + 1])
                 elif(len(idx_max) > 1):
-                    final_idx = idx_max + start
+                    final_idx = idx_max #+ start
+                    print(final_idx)
+                    #exit()
                     for a in range(0, len(final_idx)):
                         shot_boundaries_l.append([vid_name, final_idx[a], final_idx[a] + 1])
             elif(self.config_instance.activate_candidate_selection == 1):
@@ -318,8 +336,13 @@ class Evaluation:
         src_path = self.config_instance.path_videos;
         gt_data = self.config_instance.path_gt_data;
 
-        vid_name = vid_name.replace('results_raw_', '')
-        vid_name = vid_name.replace('.csv', '')
+        if (self.config_instance.path_postfix_raw_results == 'csv'):
+            vid_name = vid_name.replace('results_raw_', '')
+            vid_name = vid_name.replace('.csv', '')
+        elif (self.config_instance.path_postfix_raw_results == 'npy'):
+            vid_name = vid_name.replace('results_raw_', '')
+            vid_name = vid_name.replace('.npy', '')
+
         #print(vid_name)
         #vid_name = result_np[0][0];
         video_obj = Video();
@@ -372,7 +395,7 @@ class Evaluation:
 
         pred_np = np.array(pred_l)
         #print(pred_np)
-
+        print(vid_name)
         idx = np.where(vid_name == pred_np)[0]
         sb_pred_np = pred_np[idx];
         #print("---------")
@@ -382,6 +405,8 @@ class Evaluation:
         sb_gt_np = gt_np[idx];
         #print("---------")
         #print(sb_gt_np)
+
+        #exit()
 
         # video-based predictions
         tp_cnt = 0;
@@ -458,7 +483,7 @@ class Evaluation:
         if(tp_cnt + fp_cnt != 0):
             precision = tp_cnt / (tp_cnt + fp_cnt);
         else:
-            precision = 1;
+            precision = 0;
 
         if (tp_cnt + fn_cnt != 0):
             recall = tp_cnt / (tp_cnt + fn_cnt);
@@ -551,15 +576,20 @@ class Evaluation:
 
 
     def calculateEvaluationMetrics_New(self):
-        vid_name_list = os.listdir(str(self.config_instance.path_raw_results_eval))
+        if (self.config_instance.path_postfix_raw_results == 'csv'):
+            vid_name_list = os.listdir(str(self.config_instance.path_raw_results_eval))
+            vid_name_list = [i for i in vid_name_list if i.endswith('.csv')]
+        elif (self.config_instance.path_postfix_raw_results == 'npy'):
+            vid_name_list = os.listdir(str(self.config_instance.path_raw_results_eval))
+            vid_name_list = [i for i in vid_name_list if i.endswith('.npy')]
         print(vid_name_list)
 
         final_results = []
         fp_video_based = None;
-        thresholds_l = [1.0, 0.95, 0.90, 0.85, 0.8, 0.75, 0.70, 0.65, 0.60, 0.55,
+        thresholds_l = [1.0, 0.90, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55,
                         0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
-        #thresholds_l = [0.94,0.93,0.92,0.91,0.90,0.89, 0.88, 0.87, 0.86,  0.85, 0.84, 0.83, 0.82,0.81,  0.8]
-        #thresholds_l = [1.0]
+        #thresholds_l = [0.99,0.98,0.97,0.96,0.95,0.94,0.93,0.92,0.91,0.90,0.89, 0.88, 0.87, 0.86,  0.85, 0.84, 0.83, 0.82,0.80,  0.8]
+        #thresholds_l = [0.81]
         for t in thresholds_l:
         #for s in range(0, 1000):
             tp_sum = 0;
@@ -577,7 +607,10 @@ class Evaluation:
 
             results_l = [];
             for vid_name in vid_name_list:
-                results_np = self.loadRawResultsAsCsv_New(self.config_instance.path_raw_results_eval + "/" + vid_name)
+                if(self.config_instance.path_postfix_raw_results == 'csv'):
+                    results_np = self.loadRawResultsAsCsv_New(self.config_instance.path_raw_results_eval + "/" + vid_name)
+                elif (self.config_instance.path_postfix_raw_results == 'npy'):
+                    results_np = self.loadRawResultsAsFromNumpy(self.config_instance.path_raw_results_eval + "/" + vid_name)
 
                 # calculate similarity measures of consecutive frames and threshold it
                 shot_boundaries_np1 = self.calculateSimilarityMetric(results_np, threshold=THRESHOLD);
