@@ -11,7 +11,7 @@ PreProcessing:
   HISTOGRAM_EQU: 'none'     # "clahe" or "classic" or "none"
 
 SbdCore:
-  CANDIDATE_SELECTION: 0    # 1 ... activate 0 ... deactivate
+  CANDIDATE_SELECTION: 1    # 1 ... activate 0 ... deactivate
 
   SAVE_RAW_RESULTS: 1       # 1 ... yes 0 ... no
   PATH_RAW_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp01_none/efilms/results_raw/"
@@ -28,7 +28,9 @@ SbdCore:
   POSTFIX_FINAL_RESULTS: "csv"
 
   PATH_VIDEOS: "/caa/Projects02/vhh/private/dzafirova_nobackup/sbd_efilms_db_20190621/videos_converted/"
+  THRESHOLD_MODE: 'adaptive'    # adaptive OR fixed
   THRESHOLD: 0.8
+  WINDOW_SIZE: 10               # only for adaptive mode
   BACKBONE_CNN: "squeezenet"    # vgg16 OR squeezenet
   SIMILARITY_METRIC: "cosine"    # euclidean OR cosine
 
@@ -46,13 +48,13 @@ Visualization:
 Evaluation:
   SAVE_EVAL_RESULTS: 1
   PATH_GT_ANNOTATIONS: "/caa/Projects02/vhh/private/database_nobackup/VHH_datasets/annotations/ShotBoundaryDetection/efilms/shotBoundaries_annotations_v8_20190523.csv"
-  PATH_RAW_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp01_none/efilms/results_raw/"
-  PATH_EVAL_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp01_none/efilms/Evaluation/"
+  #PATH_RAW_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp01_none/efilms/results_raw/"
+  #PATH_EVAL_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp01_none/efilms/Evaluation/"
 
   #PATH_RAW_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp02_clahe/efilms/results_raw/"
   #PATH_EVAL_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp02_clahe/efilms/Evaluation/"
 
-  #PATH_RAW_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp03_classic/efilms/results_raw/"
-  #PATH_EVAL_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp03_classic/efilms/Evaluation/"
+  PATH_RAW_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp03_classic/efilms/results_raw/"
+  PATH_EVAL_RESULTS: "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp03_classic/efilms/Evaluation/"
 
 

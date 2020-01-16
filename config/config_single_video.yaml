@@ -19,13 +19,15 @@ SbdCore:
   POSTFIX_RAW_RESULTS: "csv"
 
   SAVE_FINAL_RESULTS: 1     # 1 ... yes 0 ... no
-  PATH_FINAL_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/"
+  PATH_FINAL_RESULTS: "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Demo/results_final"
   PREFIX_FINAL_RESULTS: "results_"
   POSTFIX_FINAL_RESULTS: "csv"
 
   PATH_VIDEOS: "/caa/Projects02/vhh/private/database_nobackup/IMediaCities_datasets/IMC_database/videos/"
+  THRESHOLD_MODE: 'adaptive'    # adaptive OR fixed
   THRESHOLD: 0.8
-  BACKBONE_CNN: "squeezenet"    # vgg16 OR squeezenet
+  WINDOW_SIZE: 10               # only for adaptive mode
+  BACKBONE_CNN: "vgg16"    # vgg16 OR squeezenet
   SIMILARITY_METRIC: "cosine"
 
 CandidateSelection:
