@@ -4,13 +4,9 @@ from sbd.Configuration import Configuration
 from sbd.Shot import Shot
 from sbd.PreProcessing import PreProcessing
 from sbd.Model import *
-from sbd.Evaluation import Evaluation
-#import os
 from matplotlib import pyplot as plt
 from scipy.spatial import distance
 from sbd.DeepSBD import CandidateSelection
-import torch
-from torch.utils import data
 import os
 import cv2
 
@@ -18,50 +14,28 @@ class SBD:
     def __init__(self, config_file: str):
         #printCustom("INFO: create instance of sbd ... ", STDOUT_TYPE.INFO);
 
-        # parse configuration
-        #cwd = os.getcwd()
-        #print(cwd)
-
         if (config_file == ""):
             printCustom("No configuration file specified!", STDOUT_TYPE.ERROR)
             exit()
 
-        #config_file = "../config/config_debug.yaml";
         self.config_instance = Configuration(config_file);
         self.config_instance.loadConfig();
 
         self.vid_instance = None;
         self.pre_proc_instance = PreProcessing(self.config_instance);
-        #self.evaluation_instance = Evaluation(self.config_instance);
         self.candidate_selection_instance = CandidateSelection(self.config_instance)
         self.net = None;
 
         self.src_path = "";
         self.filename_l = "";
 
-    def calculateDistance(self, x, y):
-        dst = 0;
-
-        # initial pre-trained model
-        if (self.config_instance.similarity_metric == "cosine"):
-            dst = distance.cosine(x, y)
-        elif (self.config_instance.similarity_metric == "euclidean"):
-            dst = distance.euclidean(x, y)
-        else:
-            dst = None;
-            printCustom("No valid similarity metric selected!", STDOUT_TYPE.ERROR)
-            exit();
-
-        return dst;
-
-    def run(self):
+    def runOnFolder(self):
         shots_np = None;
 
         self.src_path = self.config_instance.path_videos;
         self.filename_l = os.listdir(self.src_path)
         vid_name_l = self.filename_l
-        #vid_name_l = ['OFM_Entree-du-Cinematographe-a-Vienne_H264-1440x1080-High-CAVLC-12Mbps-KFIAuto-mp-AudioNone_16fps_0001-03-0505.mp4']
-        print(vid_name_l)
+
         shot_boundaries_l = []
         for vid_name in vid_name_l:
             printCustom("--------------------------", STDOUT_TYPE.INFO)
@@ -82,8 +56,7 @@ class SBD:
             elif (self.config_instance.activate_candidate_selection == 0):
                 # shot boundary detection
                 printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
-                # shots_np = self.runWithoutCandidateSelection(self.src_path, vid_name)
-                shots_np = self.runWithoutCandidateSelection_BETTER(self.src_path, vid_name)
+                shots_np = self.runWithoutCandidateSelection(self.src_path, vid_name)
 
             # convert shot boundaries to final shots
             if(len(shots_np) > 0):
@@ -91,7 +64,7 @@ class SBD:
 
             # export final results
             if (self.config_instance.save_final_results == 1):
-                self.exportResultsToCsv(shots_l, str(vid_name.split('.')[0]));
+                self.exportFinalResultsToCsv(shots_l, str(vid_name.split('.')[0]));
 
             shot_boundaries_l.extend(shots_np);
 
@@ -103,11 +76,12 @@ class SBD:
 
         # export final results
         if (self.config_instance.save_final_results == 1):
-            self.exportResultsToCsv(final_shot_l, "all");
+            self.exportFinalResultsToCsv(final_shot_l, "all");
 
         return final_shot_l;
 
     def runOnSingleVideo(self, video_filename):
+
         shot_boundaries_l = []
         self.src_path = self.config_instance.path_videos;
 
@@ -135,8 +109,7 @@ class SBD:
         elif (self.config_instance.activate_candidate_selection == 0):
             # shot boundary detection
             printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
-            #shot_boundaries_np = self.runWithoutCandidateSelection(self.src_path, vid_name)
-            shot_boundaries_np = self.runWithoutCandidateSelection_BETTER(self.src_path, vid_name)
+            shot_boundaries_np = self.runWithoutCandidateSelection(self.src_path, vid_name)
 
 
         # convert shot boundaries to final shots
@@ -144,76 +117,11 @@ class SBD:
 
         # export final results
         if (self.config_instance.save_final_results == 1):
-            self.exportResultsToCsv(final_shot_l, vid_name.split('.')[0]);
+            self.exportFinalResultsToCsv(final_shot_l, vid_name.split('.')[0]);
 
         return final_shot_l;
 
-    def exportResultsToCsv(self, shot_l: list, name: str):
-        printCustom("Export shot list to csv file ... ", STDOUT_TYPE.INFO);
-
-        fp = open(self.config_instance.path_final_results + "/final_shots_" + str(name) + ".csv", 'w');
-        fp.write("shot_id;vid_name;start;end" + "\n")
-        for shot in shot_l:
-            tmp_str = shot.convert2String();
-            fp.write(tmp_str + "\n");
-        fp.close()
-
     def runWithoutCandidateSelection(self, src_path, vid_name):
-        #printCustom("process shot detection ... ", STDOUT_TYPE.INFO);
-
-        # load video
-        self.vid_instance = Video();
-        self.vid_instance.load(src_path + "/" + vid_name);
-
-        # initial pre-trained model
-        self.net = PyTorchModel(model_arch=self.config_instance.backbone_cnn);
-
-        number_of_frames = int(self.vid_instance.number_of_frames);
-        #print(number_of_frames)
-        results_l = [];
-        shot_l = []
-        for i in range(1, number_of_frames):
-            print("-------------------")
-            print("process " + str(i))
-            idx_curr = i;
-            idx_prev = i-1;
-
-            frm_prev = self.vid_instance.getFrame(idx_prev);
-            frm_curr = self.vid_instance.getFrame(idx_curr);
-
-            #print("preprocess images ... ")
-            #dim = (int(self.vid_instance.width / 2), int(self.vid_instance.height / 2));
-            #print(frm.shape)
-            frm_trans_prev = self.pre_proc_instance.applyTransformOnImg(frm_prev)
-            frm_trans_curr = self.pre_proc_instance.applyTransformOnImg(frm_curr)
-            #print(frm_trans.shape)
-
-            #print("process core part ... ")
-            feature_prev = self.net.getFeatures(frm_trans_prev)
-            feature_curr = self.net.getFeatures(frm_trans_curr)
-            result = self.calculateDistance(feature_prev, feature_curr)
-            #print(result)
-
-            if (int(self.config_instance.save_raw_results) == 1):
-                results_l.append(result)
-
-            if (result > self.config_instance.threshold):
-                printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
-                shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
-
-        # save raw results to file
-        if (int(self.config_instance.save_raw_results) == 1):
-            print("save raw results ... ")
-            raw_results_l = []
-            raw_results_l.append([1, number_of_frames, results_l])
-            results_np = np.array(raw_results_l)
-            self.exportRawResultsAsCsv_New(results_np)
-
-        # convert shot boundaries to shots
-        shots_np = np.array(shot_l)
-        return shots_np;
-
-    def runWithoutCandidateSelection_BETTER(self, src_path, vid_name):
         #printCustom("process shot detection ... ", STDOUT_TYPE.INFO);
 
         # load video
@@ -221,12 +129,9 @@ class SBD:
                                     transforms.ToTensor()
                                     ])
         self.vid_instance = VideoDataset(src_path + "/" + vid_name, transform=trans);
-        #self.vid_instance = Video();
-        #self.vid_instance.load(src_path + "/" + vid_name);
 
         # initial pre-trained model
         self.net = PyTorchModel(model_arch=self.config_instance.backbone_cnn);
-
 
         # read all frames of video
         cap = cv2.VideoCapture(src_path + "/" + vid_name)
@@ -240,8 +145,6 @@ class SBD:
                 break;
 
         frame_np = np.array(frame_l)
-        print(frame_np.shape)
-
 
         # calculate features and similarities
         number_of_frames = len(frame_np)
@@ -379,19 +282,15 @@ class SBD:
 
         return shots_np;
 
-    def exportRawResultsAsCsv(self, results_np: np.ndarray):
-        # save raw results to file
-        fp = open(self.config_instance.path_raw_results +
-                  self.config_instance.path_prefix_raw_results +
-                  str(self.vid_instance.vidName.split('.')[0]) + "." +
-                  self.config_instance.path_postfix_raw_results, mode='w');
+    def exportFinalResultsToCsv(self, shot_l: list, name: str):
+        printCustom("Export shot list to csv file ... ", STDOUT_TYPE.INFO);
 
-        for i in range(0, len(results_np)):
-            # for j in range(0, len(results_np[0])):
-            # print(sb_np[i])
-            fp.write(self.vid_instance.vidName.split('.')[0] + ";" + str(results_np[i]) + "\n")
-            # csv_writer.writerow(row);
-        fp.close();
+        fp = open(self.config_instance.path_final_results + "/final_shots_" + str(name) + ".csv", 'w');
+        fp.write("shot_id;vid_name;start;end" + "\n")
+        for shot in shot_l:
+            tmp_str = shot.convert2String();
+            fp.write(tmp_str + "\n");
+        fp.close()
 
     def exportRawResultsAsNumpy(self, results_np: np.ndarray):
         np.save(self.config_instance.path_raw_results +
@@ -416,23 +315,20 @@ class SBD:
             # csv_writer.writerow(row);
         fp.close();
 
-    def exportResultsAsCsv(self, shot_boundaries_np):
-        # save final results to file
-        fp = open(self.config_instance.path_final_results +
-                  self.config_instance.path_prefix_final_results +
-                  str(self.vid_instance.vidName.split('.')[0]) +
-                  self.config_instance.path_postfix_final_results, mode='w');
+    def calculateDistance(self, x, y):
+        dst = 0;
 
-        for i in range(0, len(shot_boundaries_np)):
-            # print(sb_np[i])
-            vidname = shot_boundaries_np[i][0];
-            start = shot_boundaries_np[i][1];
-            stop = shot_boundaries_np[i][2];
+        # initial pre-trained model
+        if (self.config_instance.similarity_metric == "cosine"):
+            dst = distance.cosine(x, y)
+        elif (self.config_instance.similarity_metric == "euclidean"):
+            dst = distance.euclidean(x, y)
+        else:
+            dst = None;
+            printCustom("No valid similarity metric selected!", STDOUT_TYPE.ERROR)
+            exit();
 
-            tmp_str = str(vidname) + ";" + str(start) + ";" + str(stop);
-            fp.write(tmp_str + "\n")
-            # csv_writer.writerow(row);
-        fp.close();
+        return dst;
 
     def convertShotBoundaries2Shots(self, shot_boundaries_np: np.ndarray):
         # convert results to shot instances
