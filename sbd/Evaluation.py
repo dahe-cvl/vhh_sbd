@@ -236,7 +236,7 @@ class Evaluation:
         final_np = np.array(final_l)
         return final_np
 
-    def calculateSimilarityMetric(self, results_np: np.ndarray, threshold=0.8):
+    def calculateSimilarityMetric(self, results_np: np.ndarray, threshold=4.5):
         '''
         vid_name = results_np[0][0];
         start = results_np[i][1]
@@ -263,18 +263,43 @@ class Evaluation:
 
             if(self.config_instance.activate_candidate_selection == 0):
                 # just take all frame positions over specified threshold
-                idx_max = np.where(distances_np > threshold)[0]
-                print(idx_max)
 
-                if(len(idx_max) == 1) :
-                    final_idx = idx_max #+ start
-                    shot_boundaries_l.append([vid_name, final_idx, final_idx + 1])
-                elif(len(idx_max) > 1):
-                    final_idx = idx_max #+ start
-                    print(final_idx)
-                    #exit()
-                    for a in range(0, len(final_idx)):
-                        shot_boundaries_l.append([vid_name, final_idx[a], final_idx[a] + 1])
+                THRESHOLD_MODE = self.config_instance.threshold_mode;
+                if (THRESHOLD_MODE == "adaptive"):
+                    shot_l = []
+                    thresholds = []
+                    window_size = self.config_instance.window_size;
+                    alpha = threshold;
+                    for i in range(0, len(distances_np)):
+                        if (i % window_size == 0):
+                            th = np.mean(distances_np[i:i + window_size]) * alpha
+                        thresholds.append(th)
+                    thresholds = np.array(thresholds);
+                    print(thresholds.shape)
+
+                    for i in range(0, len(distances_np)):
+                        if (distances_np[i] > thresholds[i]):
+                            idx_curr = i + 1;
+                            idx_prev = i;
+                            shot_boundaries_l.append([vid_name, idx_prev, idx_curr])
+                            # print("cut at: " + str(i) + " -> " + str(i+1))
+                            # print(i)
+                            # print(thresholds[i])
+                            # print(distances_np[i])
+                if (THRESHOLD_MODE == "fixed"):
+                    idx_max = np.where(distances_np > threshold)[0]
+                    print(idx_max)
+
+                    if(len(idx_max) == 1) :
+                        final_idx = idx_max #+ start
+                        shot_boundaries_l.append([vid_name, final_idx, final_idx + 1])
+                    elif(len(idx_max) > 1):
+                        final_idx = idx_max #+ start
+                        print(final_idx)
+                        #exit()
+                        for a in range(0, len(final_idx)):
+                            shot_boundaries_l.append([vid_name, final_idx[a], final_idx[a] + 1])
+
             elif(self.config_instance.activate_candidate_selection == 1):
                 # just take all frame positions over specified threshold
                 idx_max = np.argmax(distances_np)
@@ -586,10 +611,15 @@ class Evaluation:
 
         final_results = []
         fp_video_based = None;
-        thresholds_l = [1.0, 0.90, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55,
-                        0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
-        #thresholds_l = [0.99,0.98,0.97,0.96,0.95,0.94,0.93,0.92,0.91,0.90,0.89, 0.88, 0.87, 0.86,  0.85, 0.84, 0.83, 0.82,0.80,  0.8]
-        #thresholds_l = [0.81]
+
+        if(self.config_instance.threshold_mode == 'adaptive'):
+            thresholds_l = [1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.55, 3.6, 3.65, 3.7, 3.75, 4.0, 4.5, 5.0, 5.5, 6.0]
+        elif(self.config_instance.threshold_mode == 'fixed'):
+            thresholds_l = [1.0, 0.95, 0.90, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55,
+                            0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
+        else:
+            thresholds_l = []
+
         for t in thresholds_l:
         #for s in range(0, 1000):
             tp_sum = 0;

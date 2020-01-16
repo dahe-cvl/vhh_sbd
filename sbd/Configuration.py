@@ -30,6 +30,8 @@ class Configuration:
 
         self.path_videos = None;
         self.threshold = 0.0;
+        self.threshold_mode = None;
+        self.window_size = None;
         self.backbone_cnn = None;
         self.similarity_metric = None;
 
@@ -76,6 +78,8 @@ class Configuration:
         self.path_final_results = sbd_core_config['PATH_FINAL_RESULTS'];
 
         self.path_videos = sbd_core_config['PATH_VIDEOS'];
+        self.threshold_mode = sbd_core_config['THRESHOLD_MODE'];
+        self.window_size = int(sbd_core_config['WINDOW_SIZE']);
         self.threshold = float(sbd_core_config['THRESHOLD']);
         self.backbone_cnn = sbd_core_config['BACKBONE_CNN'];
         self.similarity_metric = sbd_core_config['SIMILARITY_METRIC'];

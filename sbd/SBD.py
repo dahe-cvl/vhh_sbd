@@ -243,8 +243,6 @@ class SBD:
         print(frame_np.shape)
 
 
-
-
         # calculate features and similarities
         number_of_frames = len(frame_np)
         results_l = [];
@@ -267,33 +265,44 @@ class SBD:
             if (int(self.config_instance.save_raw_results) == 1):
                 results_l.append(result)
 
-            #if (result > self.config_instance.threshold):
-            #    printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
-            #    shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
-
         # calculate thresholds
         distances_np = np.array(results_l)
-        thresholds = []
-        window_size = 10;
-        alpha = 3.5;
-        for i in range(0, len(distances_np)):
-            if(i % window_size == 0):
-                th = np.mean(distances_np[i:i+window_size]) * alpha
-            thresholds.append(th)
-        thresholds = np.array(thresholds);
-        print(thresholds.shape)
+        if (self.config_instance.threshold_mode == 'adaptive'):
+            thresholds = []
+            window_size = self.config_instance.window_size;
+            alpha = self.config_instance.threshold;
+            for i in range(0, len(distances_np)):
+                if(i % window_size == 0):
+                    th = np.mean(distances_np[i:i+window_size]) * alpha
+                thresholds.append(th)
+            thresholds = np.array(thresholds);
+            print(thresholds.shape)
 
-        for i in range(0, len(distances_np)):
-            if (distances_np[i] > thresholds[i]):
-                idx_curr = i + 1;
-                idx_prev = i;
+            for i in range(0, len(distances_np)):
+                if (distances_np[i] > thresholds[i]):
+                    idx_curr = i + 1;
+                    idx_prev = i;
 
-                #print("cut at: " + str(i) + " -> " + str(i+1))
-                #print(i)
-                #print(thresholds[i])
-                #print(distances_np[i])
-                printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
-                shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
+                    #print("cut at: " + str(i) + " -> " + str(i+1))
+                    #print(i)
+                    #print(thresholds[i])
+                    #print(distances_np[i])
+                    printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
+                    shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
+
+        elif (self.config_instance.threshold_mode == 'fixed'):
+            for i in range(0, len(distances_np)):
+                if (distances_np[i] > self.config_instance.threshold):
+                    idx_curr = i + 1;
+                    idx_prev = i;
+
+                    # print("cut at: " + str(i) + " -> " + str(i+1))
+                    # print(i)
+                    # print(thresholds[i])
+                    # print(distances_np[i])
+                    printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
+                    shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
+
 
         # save raw results to file
         if (int(self.config_instance.save_raw_results) == 1):
