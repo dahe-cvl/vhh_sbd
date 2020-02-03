@@ -21,151 +21,7 @@ class Evaluation:
         self.f1score = 0;
 
 
-    def exportResultsToCSV(self, res_np):
-        print("start csv export ...");
-
-        timestamp = str(strftime("%Y-%m-%d_%H%M%S", gmtime()));
-        fp = open(self.results_path + "/" + "results_"+ str(timestamp) +".csv", mode='w');
-        #csv_writer = csv.writer(fp, delimiter=';');
-
-        for i in range(0, len(res_np)):
-            #print(sb_np[i])
-            vidname = res_np[i][0];
-            sb_np = res_np[i][1];
-            tmp_str = str(vidname) + ";";
-            for j in range(0, len(sb_np)):
-                tmp_str = tmp_str + str(int(sb_np[j])) + ";"
-            fp.write(tmp_str + "\n")
-            #csv_writer.writerow(row);
-
-        fp.close();
-
-    def exportMovieResultsToCSV(self, fName, res_np):
-        print("start csv export ...");
-        fName = fName.split('.')[0]
-        print(fName)
-
-        fp = open(str(fName) + "_movie_based.csv", mode='w');
-
-        tmp_str = "vidname;precision;recall;f1score";
-        fp.write(tmp_str + "\n")
-        for i in range(0, len(res_np)):
-            #print(sb_np[i])
-            vidname = res_np[i][0];
-            p = res_np[i][1];
-            r = res_np[i][2];
-            f1 = res_np[i][3];
-            tmp_str = vidname + ";" + str(p) + ";" + str(r) + ";" + str(f1)
-            fp.write(tmp_str + "\n")
-            #csv_writer.writerow(row);
-
-        fp.close();
-
-    def loadFromJson(self, filepath):
-        print("load data from json file ...");
-        fp = open(filepath, mode='r');
-        res_json = json.load(fp);
-
-        #print(res_json.items())
-        sbd_list = [];
-        for videoname, labels in res_json.items():
-            #print("-----------------")
-            #print(videoname)
-
-            _gts = res_json[videoname]['cut'];
-            # print(_gts)
-
-            for start, end in _gts:
-                if (abs(start - end) > 1):
-                    sbd_list.append([videoname, start, end, 'gradual']);
-                if (abs(start - end) == 1):
-                    sbd_list.append([videoname, start, end, 'abrupt']);
-
-                #print("videoname: " + str(videoname))
-                #print(start)
-                #print(end)
-                #print("--------")
-
-        sbd_np = np.array(sbd_list)
-
-        idx = np.where(sbd_np[:, 3:4] == 'abrupt')[0];
-        p_abrupt_np = sbd_np[idx];
-
-        idx = np.where(sbd_np[:, 3:4] == 'gradual')[0];
-        p_gradual_np = sbd_np[idx];
-
-        # print(self.gt_cuts_np)
-        # print(self.gt_graduals_np)
-        return p_abrupt_np, p_gradual_np
-
-    def loadFromJsonDeepSBD(self, filepath):
-        print("load data from json file ...");
-        fp = open(filepath, mode='r');
-        res_json = json.load(fp);
-
-        #print(res_json.items())
-        sbd_cut_list = [];
-        sbd_gradual_list = [];
-        for videoname, labels in res_json.items():
-            #print("-----------------")
-            #print(videoname)
-
-            _p_cut = res_json[videoname]['cut'];
-            _p_gradual = res_json[videoname]['gradual'];
-            #print(_p_cut)
-            #print(_p_gradual)
-
-            for start, end in _p_cut:
-                sbd_cut_list.append([videoname, start, end, 'cut']);
-
-
-            for start, end in _p_gradual:
-                sbd_gradual_list.append([videoname, start, end, 'gradual']);
-
-                #print("videoname: " + str(videoname))
-                #print(start)
-                #print(end)
-                #print("--------")
-
-        sbd_cut_np = np.array(sbd_cut_list)
-        sbd_gradual_np = np.array(sbd_gradual_list)
-
-
-        # print(self.gt_cuts_np)
-        # print(self.gt_graduals_np)
-        return sbd_cut_np, sbd_gradual_np
-
-    def loadResultsFromCSV(self, filepath):
-        print("load data from csv file ...");
-        fp = open(filepath, mode='r');
-        csv_reader = csv.reader(fp, delimiter=';');
-        res_l = [];
-
-        for line in csv_reader:
-            res_l.append(line);
-        res_np = np.array(res_l)
-        #print(res_np)
-
-        fp.close();
-        return res_np;
-
-    def calcPRF(self, tp, fp, fn, tn):
-        print("calculate precision, recall and f1 score ...");
-
-        # TP, TN, FP, FN
-
-        self.precision = float(tp) / (float(tp) + float(fp))
-        self.recall = tp / (tp + fn)
-
-        if(self.precision > 0 and self.recall > 0):
-            self.f1score = 2 * (self.precision * self.recall) / (self.precision + self.recall)
-        else:
-            self.f1score = 0.0;
-
-        print("precision: " + str(round(self.precision, 3)));
-        print("recall: " + str(round(self.recall, 3)));
-        print("f1score: " + str(round(self.f1score, 3)));
-
+    '''
     def loadRawResultsAsCsv(self, filepath):
         # save raw results to file
         fp = open(filepath, mode='r');
@@ -190,69 +46,11 @@ class Evaluation:
         dist_np = np.array(dist_l)
         #print(dist_np.shape)
         return dist_np
+    '''
 
-    def loadRawResultsAsFromNumpy(self, filepath):
-        # save raw results to file
-        print("load raw results from numpy ...")
-        vid_name = filepath.split('/')[-1].split('.')[0];
-        raw_results = np.load(filepath, allow_pickle=True)
 
-        start = raw_results[0][0]
-        stop = raw_results[0][1]
-        dist_l = raw_results[0][2]
-        dist_np = np.array(dist_l).astype('float')
-
-        array_list = []
-        array_list.append([vid_name.replace("results_raw_", ""), start, stop, dist_np])
-        array_np = np.array(array_list)
-        return array_np;
-
-    def loadRawResultsAsCsv_New(self, filepath):
-        # save raw results to file
-        fp = open(filepath, mode='r');
-        lines = fp.readlines();
-        fp.close();
-        #print(len(lines))
-
-        final_l = [];
-        for i in range(0, len(lines)):
-            line = lines[i].replace('\n', '')
-            line = line.replace('[', '')
-            line = line.replace(']', '')
-            line = line.replace(')', '')
-            line = line.replace('(', '')
-            #line = line.replace('list', '')
-            line = line.replace('\'', '')
-            line = line.replace(',', '.')
-            #line = line.replace(' ', '')
-            line_split = line.split(';')
-            vidname = line_split[0];
-            start = int(line_split[1]);
-            end = int(line_split[2]);
-            dist_l = line_split[3:];
-            dist_np = np.array(dist_l).astype('float')
-            final_l.append([vidname, start, end, dist_np]);
-
-        final_np = np.array(final_l)
-        return final_np
 
     def calculateSimilarityMetric(self, results_np: np.ndarray, threshold=4.5):
-        '''
-        vid_name = results_np[0][0];
-        start = results_np[i][1]
-        distances_np = results_np[:, 1:2].astype('float');
-
-        idx_max = np.where(distances_np > threshold)[0]
-        shot_boundaries_l = []
-        for i in range(0, len(idx_max)):
-            shot_boundaries_l.append([vid_name, idx_max[i], idx_max[i] + 1])
-            #cv2.imwrite("./test_result" + str(i) + "_1.png", self.vid_instance.getFrame(idx_max[i]))
-            #cv2.imwrite("./test_result" + str(i) + "_2.png", self.vid_instance.getFrame(idx_max[i] + 1))
-        shot_boundaries_np = np.array(shot_boundaries_l)
-        #print(shot_boundaries_np.shape)
-        #print(shot_boundaries_np)
-        '''
-
         shot_boundaries_l = []
         for i in range(0, len(results_np)):
             vid_name = results_np[i][0]
@@ -315,7 +113,7 @@ class Evaluation:
         #print(shot_boundaries_np)
         return shot_boundaries_np;
 
-
+    '''
     def calculateSimilarityMetric_new(self, results_np: np.ndarray, threshold=0.8):
         shot_boundaries_l = []
         for i in range(0, len(results_np)):
@@ -354,6 +152,7 @@ class Evaluation:
 
         shot_boundaries_np = np.array(shot_boundaries_l)
         return shot_boundaries_np;
+    '''
 
     def evaluation(self, result_np, vid_name):
         #print("NOT IMPLEMENTED YET");
@@ -538,18 +337,9 @@ class Evaluation:
 
         return precision, recall, accuracy, f1_score, tp_rate, fp_rate;
 
-    def export2CSV(self, data_np: np.ndarray, header: str, filename: str, path: str):
-        # save to csv file
-        fp = open(path + "/" + str(filename) + ".csv", 'w');
-        fp.write(header)
-        for i in range(0, len(data_np)):
-            tmp_str = data_np[i][0];
-            for j in range(1, len(data_np[0])):
-                tmp_str = tmp_str + ";" + data_np[i][j]
-                # print(str(i) + "/" + str(j) + " - " + tmp_str)
-            fp.write(tmp_str + "\n")
-        fp.close();
 
+
+    '''
     def calculateEvaluationMetrics(self, src_path: str, vid_name_list: list, prefix="results_raw_"):
         tp_sum = 0;
         fp_sum = 0;
@@ -598,7 +388,7 @@ class Evaluation:
 
         final_results_np = np.array(final_results);
         return final_results_np;
-
+    '''
 
     def calculateEvaluationMetrics_New(self):
         if (self.config_instance.path_postfix_raw_results == 'csv'):
@@ -638,9 +428,9 @@ class Evaluation:
             results_l = [];
             for vid_name in vid_name_list:
                 if(self.config_instance.path_postfix_raw_results == 'csv'):
-                    results_np = self.loadRawResultsAsCsv_New(self.config_instance.path_raw_results_eval + "/" + vid_name)
+                    results_np = self.loadRawResultsFromCsv(self.config_instance.path_raw_results_eval + "/" + vid_name)
                 elif (self.config_instance.path_postfix_raw_results == 'npy'):
-                    results_np = self.loadRawResultsAsFromNumpy(self.config_instance.path_raw_results_eval + "/" + vid_name)
+                    results_np = self.loadRawResultsFromNumpy(self.config_instance.path_raw_results_eval + "/" + vid_name)
 
                 # calculate similarity measures of consecutive frames and threshold it
                 shot_boundaries_np1 = self.calculateSimilarityMetric(results_np, threshold=THRESHOLD);
@@ -720,6 +510,117 @@ class Evaluation:
         plt.title('Receiver Operating Characteristic (ROC) Curve')
         plt.legend()
         plt.savefig(self.config_instance.path_eval_results + "/roc_curve.png")
+
+    def export2CSV(self, data_np: np.ndarray, header: str, filename: str, path: str):
+        # save to csv file
+        fp = open(path + "/" + str(filename) + ".csv", 'w');
+        fp.write(header)
+        for i in range(0, len(data_np)):
+            tmp_str = data_np[i][0];
+            for j in range(1, len(data_np[0])):
+                tmp_str = tmp_str + ";" + data_np[i][j]
+                # print(str(i) + "/" + str(j) + " - " + tmp_str)
+            fp.write(tmp_str + "\n")
+        fp.close();
+
+    def exportResultsToCSV(self, res_np):
+        print("start csv export ...");
+
+        timestamp = str(strftime("%Y-%m-%d_%H%M%S", gmtime()));
+        fp = open(self.results_path + "/" + "results_"+ str(timestamp) +".csv", mode='w');
+        #csv_writer = csv.writer(fp, delimiter=';');
+
+        for i in range(0, len(res_np)):
+            #print(sb_np[i])
+            vidname = res_np[i][0];
+            sb_np = res_np[i][1];
+            tmp_str = str(vidname) + ";";
+            for j in range(0, len(sb_np)):
+                tmp_str = tmp_str + str(int(sb_np[j])) + ";"
+            fp.write(tmp_str + "\n")
+            #csv_writer.writerow(row);
+
+        fp.close();
+
+    def exportMovieResultsToCSV(self, fName, res_np):
+        print("start csv export ...");
+        fName = fName.split('.')[0]
+        print(fName)
+
+        fp = open(str(fName) + "_movie_based.csv", mode='w');
+
+        tmp_str = "vidname;precision;recall;f1score";
+        fp.write(tmp_str + "\n")
+        for i in range(0, len(res_np)):
+            #print(sb_np[i])
+            vidname = res_np[i][0];
+            p = res_np[i][1];
+            r = res_np[i][2];
+            f1 = res_np[i][3];
+            tmp_str = vidname + ";" + str(p) + ";" + str(r) + ";" + str(f1)
+            fp.write(tmp_str + "\n")
+            #csv_writer.writerow(row);
+
+        fp.close();
+
+    def loadResultsFromCSV(self, filepath):
+        print("load data from csv file ...");
+        fp = open(filepath, mode='r');
+        csv_reader = csv.reader(fp, delimiter=';');
+        res_l = [];
+
+        for line in csv_reader:
+            res_l.append(line);
+        res_np = np.array(res_l)
+        #print(res_np)
+
+        fp.close();
+        return res_np;
+
+    def loadRawResultsFromNumpy(self, filepath):
+        # save raw results to file
+        print("load raw results from numpy ...")
+        vid_name = filepath.split('/')[-1].split('.')[0];
+        raw_results = np.load(filepath, allow_pickle=True)
+
+        start = raw_results[0][0]
+        stop = raw_results[0][1]
+        dist_l = raw_results[0][2]
+        dist_np = np.array(dist_l).astype('float')
+
+        array_list = []
+        array_list.append([vid_name.replace("results_raw_", ""), start, stop, dist_np])
+        array_np = np.array(array_list)
+        return array_np;
+
+    def loadRawResultsFromCsv(self, filepath):
+        # save raw results to file
+        fp = open(filepath, mode='r');
+        lines = fp.readlines();
+        fp.close();
+        #print(len(lines))
+
+        final_l = [];
+        for i in range(0, len(lines)):
+            line = lines[i].replace('\n', '')
+            line = line.replace('[', '')
+            line = line.replace(']', '')
+            line = line.replace(')', '')
+            line = line.replace('(', '')
+            #line = line.replace('list', '')
+            line = line.replace('\'', '')
+            line = line.replace(',', '.')
+            #line = line.replace(' ', '')
+            line_split = line.split(';')
+            vidname = line_split[0];
+            start = int(line_split[1]);
+            end = int(line_split[2]);
+            dist_l = line_split[3:];
+            dist_np = np.array(dist_l).astype('float')
+            final_l.append([vidname, start, end, dist_np]);
+
+        final_np = np.array(final_l)
+        return final_np
 
     def run(self):
         print("evaluation ... ");
