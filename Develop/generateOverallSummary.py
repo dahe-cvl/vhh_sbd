@@ -2,7 +2,8 @@ import numpy as np
 import os
 
 print("generate overall summary file ...")
-path = "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp03_classic/efilms/Evaluation/"
+path = "/caa/Projects02/vhh/private/Results/ShotBoundaryDetection/20191212_vhh_sbd/squeezenet/Exp09_none/imc/Evaluation/"
+#path = "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Develop/Evaluation/"
 
 file_list = [f for f in os.listdir(path) if f.endswith('.csv') and f.startswith("final_")]
 file_list.sort()
