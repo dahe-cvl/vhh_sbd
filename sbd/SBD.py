@@ -125,7 +125,7 @@ class SBD:
         #printCustom("process shot detection ... ", STDOUT_TYPE.INFO);
 
         # load video
-        trans = transforms.Compose([transforms.CenterCrop(64),
+        trans = transforms.Compose([transforms.CenterCrop(self.config_instance.resize_dim[0]),
                                     transforms.ToTensor()
                                     ])
         self.vid_instance = VideoDataset(src_path + "/" + vid_name, transform=trans);
@@ -136,18 +136,27 @@ class SBD:
         # read all frames of video
         cap = cv2.VideoCapture(src_path + "/" + vid_name)
         frame_l = []
+
+        cnt = 0
         while(True):
+            cnt = cnt + 1
             ret, frame = cap.read()
+            #print(cnt)
+            #print(ret)
+            #print(cap.get(cv2.CAP_PROP_FRAME_COUNT))
             if (ret == True):
                 frame = self.pre_proc_instance.applyTransformOnImg(frame)
                 frame_l.append(frame)
+                #cv2.imwrite(self.config_instance.path_eval_results + vid_name + "_" + str(cnt) + ".png", frame)
+
             else:
                 break;
-
+        #exit()
         frame_np = np.array(frame_l)
 
         # calculate features and similarities
         number_of_frames = len(frame_np)
+        #number_of_frames = 1000
         results_l = [];
         shot_l = []
         for i in range(1, number_of_frames):
@@ -175,24 +184,32 @@ class SBD:
             window_size = self.config_instance.window_size;
             alpha = self.config_instance.threshold;
             for i in range(0, len(distances_np)):
+
                 if(i % window_size == 0):
-                    th = np.mean(distances_np[i:i+window_size]) * alpha
+                    print(i)
+                    #print(distances_np)
+                    print(distances_np[i:i+window_size])
+                    th = np.mean(distances_np[i:i+window_size]) * 6.0
+                    print(th)
+
                 thresholds.append(th)
             thresholds = np.array(thresholds);
             print(thresholds.shape)
-
+            #exit()
             for i in range(0, len(distances_np)):
+                #print("####################")
+                #print(i)
+                #print("th: " + str(thresholds[i]))
+                #print("dist: " + str(distances_np[i]))
+
                 if (distances_np[i] > thresholds[i]):
                     idx_curr = i + 1;
                     idx_prev = i;
 
-                    #print("cut at: " + str(i) + " -> " + str(i+1))
-                    #print(i)
-                    #print(thresholds[i])
-                    #print(distances_np[i])
+                    print("cut at: " + str(i) + " -> " + str(i+1))
+
                     printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
                     shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
-
         elif (self.config_instance.threshold_mode == 'fixed'):
             for i in range(0, len(distances_np)):
                 if (distances_np[i] > self.config_instance.threshold):
@@ -220,6 +237,7 @@ class SBD:
 
         # convert shot boundaries to shots
         shots_np = np.array(shot_l)
+        print(shots_np)
         return shots_np;
 
     def runWithCandidateSelection(self, candidates_np):
@@ -332,6 +350,9 @@ class SBD:
 
     def convertShotBoundaries2Shots(self, shot_boundaries_np: np.ndarray):
         # convert results to shot instances
+
+        if(len(shot_boundaries_np) == 0):
+            print("no shots detected ... ")
 
         shot_l = [];
         vidname_curr = shot_boundaries_np[0][0];

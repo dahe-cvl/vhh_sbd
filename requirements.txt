@@ -1,8 +1,5 @@
-torchvision #+cu92 -f https://download.pytorch.org/whl/torch_stable.html
-torch  #+cu92 -f https://download.pytorch.org/whl/torch_stable.html
-keras_squeezenet
-keras==2.2.0
-tensorflow-gpu==1.12.0
+torch==1.5.0+cu101
+torchvision==0.6.0+cu101
 Pillow
 opencv-python
 matplotlib
