@@ -80,7 +80,7 @@ class SBD:
 
         return final_shot_l;
 
-    def runOnSingleVideo(self, video_filename):
+    def runOnSingleVideo(self, video_filename, max_recall_id=-1):
 
         shot_boundaries_l = []
         self.src_path = self.config_instance.path_videos;
@@ -117,7 +117,7 @@ class SBD:
 
         # export final results
         if (self.config_instance.save_final_results == 1):
-            self.exportFinalResultsToCsv(final_shot_l, vid_name.split('.')[0]);
+            self.exportFinalResultsToCsv(final_shot_l, str(max_recall_id))
 
         return final_shot_l;
 
@@ -303,7 +303,7 @@ class SBD:
     def exportFinalResultsToCsv(self, shot_l: list, name: str):
         printCustom("Export shot list to csv file ... ", STDOUT_TYPE.INFO);
 
-        fp = open(self.config_instance.path_final_results + "/final_shots_" + str(name) + ".csv", 'w');
+        fp = open(self.config_instance.path_final_results + "/" + str(name) + ".csv", 'w')   # final_shots_"
         fp.write("shot_id;vid_name;start;end" + "\n")
         for shot in shot_l:
             tmp_str = shot.convert2String();
