@@ -1,0 +1,98 @@
+\begin{sphinxtheindex}
+\let\bigletter\sphinxstyleindexlettergroup
+\let\spxpagem \sphinxstyleindexpagemain
+\let\spxentry \sphinxstyleindexentry
+\let\spxextra \sphinxstyleindexextra
+
+  \bigletter A
+  \item \spxentry{applyTransformOnImg()}\spxextra{sbd.PreProcessing.PreProcessing method}, 
+		\hyperpage{5}
+  \item \spxentry{applyTransformOnImgSeq()}\spxextra{sbd.PreProcessing.PreProcessing method}, 
+		\hyperpage{5}
+
+  \indexspace
+  \bigletter C
+  \item \spxentry{calculateDistance()}\spxextra{sbd.SBD.SBD method}, \hyperpage{6}
+  \item \spxentry{calculateEvaluationMetrics()}\spxextra{sbd.Evaluation.Evaluation method}, 
+		\hyperpage{4}
+  \item \spxentry{calculateMetrics()}\spxextra{sbd.Evaluation.Evaluation method}, \hyperpage{4}
+  \item \spxentry{calculateSimilarityMetric()}\spxextra{sbd.Evaluation.Evaluation method}, 
+		\hyperpage{4}
+  \item \spxentry{CandidateSelection}\spxextra{class in sbd.DeepSBD}, \hyperpage{3}
+  \item \spxentry{claHE()}\spxextra{sbd.PreProcessing.PreProcessing method}, \hyperpage{5}
+  \item \spxentry{classicHE()}\spxextra{sbd.PreProcessing.PreProcessing method}, \hyperpage{5}
+  \item \spxentry{Configuration}\spxextra{class in sbd.Configuration}, \hyperpage{3}
+  \item \spxentry{convert2String()}\spxextra{sbd.Shot.Shot method}, \hyperpage{7}
+  \item \spxentry{convertRGB2Gray()}\spxextra{sbd.PreProcessing.PreProcessing method}, 
+		\hyperpage{6}
+  \item \spxentry{convertShotBoundaries2Shots()}\spxextra{sbd.SBD.SBD method}, \hyperpage{6}
+  \item \spxentry{crop()}\spxextra{sbd.PreProcessing.PreProcessing method}, \hyperpage{6}
+
+  \indexspace
+  \bigletter E
+  \item \spxentry{ERROR}\spxextra{sbd.utils.STDOUT\_TYPE attribute}, \hyperpage{8}
+  \item \spxentry{Evaluation}\spxextra{class in sbd.Evaluation}, \hyperpage{4}
+  \item \spxentry{evaluation()}\spxextra{sbd.Evaluation.Evaluation method}, \hyperpage{4}
+  \item \spxentry{export2CSV()}\spxextra{sbd.Evaluation.Evaluation method}, \hyperpage{4}
+  \item \spxentry{exportFinalResultsToCsv()}\spxextra{sbd.SBD.SBD method}, \hyperpage{6}
+  \item \spxentry{exportMovieResultsToCSV()}\spxextra{sbd.Evaluation.Evaluation method}, 
+		\hyperpage{4}
+  \item \spxentry{exportRawResultsAsCsv\_New()}\spxextra{sbd.SBD.SBD method}, \hyperpage{7}
+  \item \spxentry{exportRawResultsAsNumpy()}\spxextra{sbd.SBD.SBD method}, \hyperpage{7}
+
+  \indexspace
+  \bigletter G
+  \item \spxentry{getCommandLineParams()}\spxextra{in module sbd.utils}, \hyperpage{8}
+  \item \spxentry{getFrame()}\spxextra{sbd.Video.Video method}, \hyperpage{8}
+
+  \indexspace
+  \bigletter I
+  \item \spxentry{INFO}\spxextra{sbd.utils.STDOUT\_TYPE attribute}, \hyperpage{8}
+
+  \indexspace
+  \bigletter L
+  \item \spxentry{load()}\spxextra{sbd.Video.Video method}, \hyperpage{8}
+  \item \spxentry{loadConfig()}\spxextra{sbd.Configuration.Configuration method}, \hyperpage{3}
+  \item \spxentry{loadRawResultsFromCsv()}\spxextra{sbd.Evaluation.Evaluation method}, 
+		\hyperpage{5}
+  \item \spxentry{loadRawResultsFromNumpy()}\spxextra{sbd.Evaluation.Evaluation method}, 
+		\hyperpage{5}
+  \item \spxentry{loadResultsFromCSV()}\spxextra{sbd.Evaluation.Evaluation method}, \hyperpage{5}
+
+  \indexspace
+  \bigletter M
+  \item \spxentry{module}
+    \subitem \spxentry{sbd.utils}, \hyperpage{8}
+
+  \indexspace
+  \bigletter P
+  \item \spxentry{plotPRCurve()}\spxextra{sbd.Evaluation.Evaluation method}, \hyperpage{5}
+  \item \spxentry{plotROCCurve()}\spxextra{sbd.Evaluation.Evaluation method}, \hyperpage{5}
+  \item \spxentry{PreProcessing}\spxextra{class in sbd.PreProcessing}, \hyperpage{5}
+  \item \spxentry{printCustom()}\spxextra{in module sbd.utils}, \hyperpage{8}
+  \item \spxentry{printShotInfo()}\spxextra{sbd.Shot.Shot method}, \hyperpage{7}
+  \item \spxentry{printVIDInfo()}\spxextra{sbd.Video.Video method}, \hyperpage{8}
+
+  \indexspace
+  \bigletter R
+  \item \spxentry{resize()}\spxextra{sbd.PreProcessing.PreProcessing method}, \hyperpage{6}
+  \item \spxentry{run()}\spxextra{sbd.DeepSBD.CandidateSelection method}, \hyperpage{3}
+  \item \spxentry{run()}\spxextra{sbd.Evaluation.Evaluation method}, \hyperpage{5}
+  \item \spxentry{runOnFolder()}\spxextra{sbd.SBD.SBD method}, \hyperpage{7}
+  \item \spxentry{runOnSingleVideo()}\spxextra{sbd.SBD.SBD method}, \hyperpage{7}
+  \item \spxentry{runWithCandidateSelection()}\spxextra{sbd.SBD.SBD method}, \hyperpage{7}
+  \item \spxentry{runWithoutCandidateSelection()}\spxextra{sbd.SBD.SBD method}, \hyperpage{7}
+
+  \indexspace
+  \bigletter S
+  \item \spxentry{SBD}\spxextra{class in sbd.SBD}, \hyperpage{6}
+  \item \spxentry{sbd.utils}
+    \subitem \spxentry{module}, \hyperpage{8}
+  \item \spxentry{Shot}\spxextra{class in sbd.Shot}, \hyperpage{7}
+  \item \spxentry{STDOUT\_TYPE}\spxextra{class in sbd.utils}, \hyperpage{8}
+
+  \indexspace
+  \bigletter V
+  \item \spxentry{Video}\spxextra{class in sbd.Video}, \hyperpage{8}
+
+\end{sphinxtheindex}

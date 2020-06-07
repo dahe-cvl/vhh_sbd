@@ -1,0 +1,49 @@
+\indexentry{Configuration (class in sbd.Configuration)@\spxentry{Configuration}\spxextra{class in sbd.Configuration}|hyperpage}{3}
+\indexentry{loadConfig() (sbd.Configuration.Configuration method)@\spxentry{loadConfig()}\spxextra{sbd.Configuration.Configuration method}|hyperpage}{3}
+\indexentry{CandidateSelection (class in sbd.DeepSBD)@\spxentry{CandidateSelection}\spxextra{class in sbd.DeepSBD}|hyperpage}{3}
+\indexentry{run() (sbd.DeepSBD.CandidateSelection method)@\spxentry{run()}\spxextra{sbd.DeepSBD.CandidateSelection method}|hyperpage}{3}
+\indexentry{Evaluation (class in sbd.Evaluation)@\spxentry{Evaluation}\spxextra{class in sbd.Evaluation}|hyperpage}{4}
+\indexentry{calculateEvaluationMetrics() (sbd.Evaluation.Evaluation method)@\spxentry{calculateEvaluationMetrics()}\spxextra{sbd.Evaluation.Evaluation method}|hyperpage}{4}
+\indexentry{calculateMetrics() (sbd.Evaluation.Evaluation method)@\spxentry{calculateMetrics()}\spxextra{sbd.Evaluation.Evaluation method}|hyperpage}{4}
+\indexentry{calculateSimilarityMetric() (sbd.Evaluation.Evaluation method)@\spxentry{calculateSimilarityMetric()}\spxextra{sbd.Evaluation.Evaluation method}|hyperpage}{4}
+\indexentry{evaluation() (sbd.Evaluation.Evaluation method)@\spxentry{evaluation()}\spxextra{sbd.Evaluation.Evaluation method}|hyperpage}{4}
+\indexentry{export2CSV() (sbd.Evaluation.Evaluation method)@\spxentry{export2CSV()}\spxextra{sbd.Evaluation.Evaluation method}|hyperpage}{4}
+\indexentry{exportMovieResultsToCSV() (sbd.Evaluation.Evaluation method)@\spxentry{exportMovieResultsToCSV()}\spxextra{sbd.Evaluation.Evaluation method}|hyperpage}{4}
+\indexentry{loadRawResultsFromCsv() (sbd.Evaluation.Evaluation method)@\spxentry{loadRawResultsFromCsv()}\spxextra{sbd.Evaluation.Evaluation method}|hyperpage}{5}
+\indexentry{loadRawResultsFromNumpy() (sbd.Evaluation.Evaluation method)@\spxentry{loadRawResultsFromNumpy()}\spxextra{sbd.Evaluation.Evaluation method}|hyperpage}{5}
+\indexentry{loadResultsFromCSV() (sbd.Evaluation.Evaluation method)@\spxentry{loadResultsFromCSV()}\spxextra{sbd.Evaluation.Evaluation method}|hyperpage}{5}
+\indexentry{plotPRCurve() (sbd.Evaluation.Evaluation method)@\spxentry{plotPRCurve()}\spxextra{sbd.Evaluation.Evaluation method}|hyperpage}{5}
+\indexentry{plotROCCurve() (sbd.Evaluation.Evaluation method)@\spxentry{plotROCCurve()}\spxextra{sbd.Evaluation.Evaluation method}|hyperpage}{5}
+\indexentry{run() (sbd.Evaluation.Evaluation method)@\spxentry{run()}\spxextra{sbd.Evaluation.Evaluation method}|hyperpage}{5}
+\indexentry{PreProcessing (class in sbd.PreProcessing)@\spxentry{PreProcessing}\spxextra{class in sbd.PreProcessing}|hyperpage}{5}
+\indexentry{applyTransformOnImg() (sbd.PreProcessing.PreProcessing method)@\spxentry{applyTransformOnImg()}\spxextra{sbd.PreProcessing.PreProcessing method}|hyperpage}{5}
+\indexentry{applyTransformOnImgSeq() (sbd.PreProcessing.PreProcessing method)@\spxentry{applyTransformOnImgSeq()}\spxextra{sbd.PreProcessing.PreProcessing method}|hyperpage}{5}
+\indexentry{claHE() (sbd.PreProcessing.PreProcessing method)@\spxentry{claHE()}\spxextra{sbd.PreProcessing.PreProcessing method}|hyperpage}{5}
+\indexentry{classicHE() (sbd.PreProcessing.PreProcessing method)@\spxentry{classicHE()}\spxextra{sbd.PreProcessing.PreProcessing method}|hyperpage}{5}
+\indexentry{convertRGB2Gray() (sbd.PreProcessing.PreProcessing method)@\spxentry{convertRGB2Gray()}\spxextra{sbd.PreProcessing.PreProcessing method}|hyperpage}{6}
+\indexentry{crop() (sbd.PreProcessing.PreProcessing method)@\spxentry{crop()}\spxextra{sbd.PreProcessing.PreProcessing method}|hyperpage}{6}
+\indexentry{resize() (sbd.PreProcessing.PreProcessing method)@\spxentry{resize()}\spxextra{sbd.PreProcessing.PreProcessing method}|hyperpage}{6}
+\indexentry{SBD (class in sbd.SBD)@\spxentry{SBD}\spxextra{class in sbd.SBD}|hyperpage}{6}
+\indexentry{calculateDistance() (sbd.SBD.SBD method)@\spxentry{calculateDistance()}\spxextra{sbd.SBD.SBD method}|hyperpage}{6}
+\indexentry{convertShotBoundaries2Shots() (sbd.SBD.SBD method)@\spxentry{convertShotBoundaries2Shots()}\spxextra{sbd.SBD.SBD method}|hyperpage}{6}
+\indexentry{exportFinalResultsToCsv() (sbd.SBD.SBD method)@\spxentry{exportFinalResultsToCsv()}\spxextra{sbd.SBD.SBD method}|hyperpage}{6}
+\indexentry{exportRawResultsAsCsv\_New() (sbd.SBD.SBD method)@\spxentry{exportRawResultsAsCsv\_New()}\spxextra{sbd.SBD.SBD method}|hyperpage}{7}
+\indexentry{exportRawResultsAsNumpy() (sbd.SBD.SBD method)@\spxentry{exportRawResultsAsNumpy()}\spxextra{sbd.SBD.SBD method}|hyperpage}{7}
+\indexentry{runOnFolder() (sbd.SBD.SBD method)@\spxentry{runOnFolder()}\spxextra{sbd.SBD.SBD method}|hyperpage}{7}
+\indexentry{runOnSingleVideo() (sbd.SBD.SBD method)@\spxentry{runOnSingleVideo()}\spxextra{sbd.SBD.SBD method}|hyperpage}{7}
+\indexentry{runWithCandidateSelection() (sbd.SBD.SBD method)@\spxentry{runWithCandidateSelection()}\spxextra{sbd.SBD.SBD method}|hyperpage}{7}
+\indexentry{runWithoutCandidateSelection() (sbd.SBD.SBD method)@\spxentry{runWithoutCandidateSelection()}\spxextra{sbd.SBD.SBD method}|hyperpage}{7}
+\indexentry{Shot (class in sbd.Shot)@\spxentry{Shot}\spxextra{class in sbd.Shot}|hyperpage}{7}
+\indexentry{convert2String() (sbd.Shot.Shot method)@\spxentry{convert2String()}\spxextra{sbd.Shot.Shot method}|hyperpage}{7}
+\indexentry{printShotInfo() (sbd.Shot.Shot method)@\spxentry{printShotInfo()}\spxextra{sbd.Shot.Shot method}|hyperpage}{7}
+\indexentry{Video (class in sbd.Video)@\spxentry{Video}\spxextra{class in sbd.Video}|hyperpage}{8}
+\indexentry{getFrame() (sbd.Video.Video method)@\spxentry{getFrame()}\spxextra{sbd.Video.Video method}|hyperpage}{8}
+\indexentry{load() (sbd.Video.Video method)@\spxentry{load()}\spxextra{sbd.Video.Video method}|hyperpage}{8}
+\indexentry{printVIDInfo() (sbd.Video.Video method)@\spxentry{printVIDInfo()}\spxextra{sbd.Video.Video method}|hyperpage}{8}
+\indexentry{module@\spxentry{module}!sbd.utils@\spxentry{sbd.utils}|hyperpage}{8}
+\indexentry{sbd.utils@\spxentry{sbd.utils}!module@\spxentry{module}|hyperpage}{8}
+\indexentry{STDOUT\_TYPE (class in sbd.utils)@\spxentry{STDOUT\_TYPE}\spxextra{class in sbd.utils}|hyperpage}{8}
+\indexentry{ERROR (sbd.utils.STDOUT\_TYPE attribute)@\spxentry{ERROR}\spxextra{sbd.utils.STDOUT\_TYPE attribute}|hyperpage}{8}
+\indexentry{INFO (sbd.utils.STDOUT\_TYPE attribute)@\spxentry{INFO}\spxextra{sbd.utils.STDOUT\_TYPE attribute}|hyperpage}{8}
+\indexentry{getCommandLineParams() (in module sbd.utils)@\spxentry{getCommandLineParams()}\spxextra{in module sbd.utils}|hyperpage}{8}
+\indexentry{printCustom() (in module sbd.utils)@\spxentry{printCustom()}\spxextra{in module sbd.utils}|hyperpage}{8}

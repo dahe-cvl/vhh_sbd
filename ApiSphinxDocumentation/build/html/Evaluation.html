@@ -1,0 +1,275 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Evaluation class &#8212; VHH Plugin Package: Shot Boundary Detection (vhh_sbd) 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="STC class" href="SBD.html" />
+    <link rel="prev" title="CandidateSelection class" href="CandidateSelection.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="SBD.html" title="STC class"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="CandidateSelection.html" title="CandidateSelection class"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">VHH Plugin Package: Shot Boundary Detection (vhh_sbd) 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="evaluation-class">
+<h1>Evaluation class<a class="headerlink" href="#evaluation-class" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="sbd.Evaluation.Evaluation">
+<em class="property">class </em><code class="sig-prename descclassname">sbd.Evaluation.</code><code class="sig-name descname">Evaluation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class is used to evaluate the implemented algorithm.</p>
+<dl class="py method">
+<dt id="sbd.Evaluation.Evaluation.calculateEvaluationMetrics">
+<code class="sig-name descname">calculateEvaluationMetrics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation.calculateEvaluationMetrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation.calculateEvaluationMetrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to calculate the evaluation metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>This methods returns a numpy array including a list of the calculated metrics (precision, recall, …).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.Evaluation.Evaluation.calculateMetrics">
+<code class="sig-name descname">calculateMetrics</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tp_cnt</span></em>, <em class="sig-param"><span class="n">fp_cnt</span></em>, <em class="sig-param"><span class="n">tn_cnt</span></em>, <em class="sig-param"><span class="n">fn_cnt</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation.calculateMetrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation.calculateMetrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to calculate the evaluation metrics precision, recall and f1score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tp_cnt</strong> – This parameter must hold a valid integer representing the tp counter.</p></li>
+<li><p><strong>fp_cnt</strong> – This parameter must hold a valid integer representing the fp counter.</p></li>
+<li><p><strong>tn_cnt</strong> – This parameter must hold a valid integer representing the tn counter.</p></li>
+<li><p><strong>fn_cnt</strong> – This parameter must hold a valid integer representing the fn counter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>This method returns the scores for precision, recall, accuracy, f1_score, tp_rate and fp_rate.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.Evaluation.Evaluation.calculateSimilarityMetric">
+<code class="sig-name descname">calculateSimilarityMetric</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">results_np</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">threshold</span><span class="o">=</span><span class="default_value">4.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation.calculateSimilarityMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation.calculateSimilarityMetric" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to calculate the similarity metrics based on the pre-calculated raw results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>results_np</strong> – This parameter must hold a valid numpy array.</p></li>
+<li><p><strong>threshold</strong> – This parameter holds a threshold. (default: 4.5)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>This method returns a numpy array including the final shot boundaries.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.Evaluation.Evaluation.evaluation">
+<code class="sig-name descname">evaluation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">result_np</span></em>, <em class="sig-param"><span class="n">vid_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation.evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation.evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is needed to evaluate the gathered results for a specified video.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>result_np</strong> – This parameter must hold a valid numpy array.</p></li>
+<li><p><strong>vid_name</strong> – This parameter represents a video name.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>This method returns the calculated TP, TN, FP and FN counters.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.Evaluation.Evaluation.export2CSV">
+<code class="sig-name descname">export2CSV</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_np</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">header</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation.export2CSV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation.export2CSV" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to export the gathered results to a csv file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_np</strong> – This parameter holds a valid numpy array.</p></li>
+<li><p><strong>header</strong> – This parameter holds a csv header line (first line in the file - semicolon seperated).</p></li>
+<li><p><strong>filename</strong> – This parameter must hold a valid file name.</p></li>
+<li><p><strong>path</strong> – THis parameter must hold a valid file path.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.Evaluation.Evaluation.exportMovieResultsToCSV">
+<code class="sig-name descname">exportMovieResultsToCSV</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fName</span></em>, <em class="sig-param"><span class="n">res_np</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation.exportMovieResultsToCSV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation.exportMovieResultsToCSV" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to export video results to csv file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> – This parameter must hold a valid file_path.</p></li>
+<li><p><strong>res_np</strong> – This parameter must hold a valid numpy array containing the final results.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.Evaluation.Evaluation.loadRawResultsFromCsv">
+<code class="sig-name descname">loadRawResultsFromCsv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filepath</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation.loadRawResultsFromCsv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation.loadRawResultsFromCsv" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to load raw results from csv file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filepath</strong> – This parameter must hold a valid file_path.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>This method returns a numpy array containing the raw_results.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.Evaluation.Evaluation.loadRawResultsFromNumpy">
+<code class="sig-name descname">loadRawResultsFromNumpy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filepath</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation.loadRawResultsFromNumpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation.loadRawResultsFromNumpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to load raw results from numpy array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filepath</strong> – This parameter must hold a valid file_path.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>This method returns a numpy array containing the raw_results.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.Evaluation.Evaluation.loadResultsFromCSV">
+<code class="sig-name descname">loadResultsFromCSV</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filepath</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation.loadResultsFromCSV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation.loadResultsFromCSV" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to load final results from csv file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filepath</strong> – This parameter must hold a valid file_path.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>This method returns a numpy array containing the final results.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.Evaluation.Evaluation.plotPRCurve">
+<code class="sig-name descname">plotPRCurve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">results_np</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation.plotPRCurve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation.plotPRCurve" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is needed to create and plot the precision_recall curve.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>results_np</strong> – This parameter must hold a vaild numpy array including the precision and recall scores.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.Evaluation.Evaluation.plotROCCurve">
+<code class="sig-name descname">plotROCCurve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">results_np</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation.plotROCCurve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation.plotROCCurve" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is needed to create and plot the roc curve.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>results_np</strong> – This parameter must hold a vaild numpy array including the precision and recall scores.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.Evaluation.Evaluation.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/Evaluation.html#Evaluation.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.Evaluation.Evaluation.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is needed to run the evaluation process.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="CandidateSelection.html"
+                        title="previous chapter">CandidateSelection class</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="SBD.html"
+                        title="next chapter">STC class</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Evaluation.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="SBD.html" title="STC class"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="CandidateSelection.html" title="CandidateSelection class"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">VHH Plugin Package: Shot Boundary Detection (vhh_sbd) 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Daniel Helm.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
+    </div>
+  </body>
+</html>

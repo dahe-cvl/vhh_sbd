@@ -1,0 +1,687 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>sbd.Evaluation &#8212; VHH Plugin Package: Shot Boundary Detection (vhh_sbd) 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">VHH Plugin Package: Shot Boundary Detection (vhh_sbd) 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for sbd.Evaluation</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">gmtime</span><span class="p">,</span> <span class="n">strftime</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">distance</span>
+<span class="kn">from</span> <span class="nn">sbd.Video</span> <span class="k">import</span> <span class="n">Video</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">signature</span>
+<span class="kn">from</span> <span class="nn">sbd.Configuration</span> <span class="k">import</span> <span class="n">Configuration</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="Evaluation"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation">[docs]</a><span class="k">class</span> <span class="nc">Evaluation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class is used to evaluate the implemented algorithm.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor.</span>
+
+<span class="sd">        :param config_file: [required] path to configuration file (e.g. PATH_TO/config.yaml)</span>
+<span class="sd">                                       must be with extension &quot;.yaml&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;create instance of evaluation ...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span> <span class="o">=</span> <span class="n">Configuration</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">loadConfig</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">precision</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">recall</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f1score</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    def loadRawResultsAsCsv(self, filepath):</span>
+<span class="sd">        # save raw results to file</span>
+<span class="sd">        fp = open(filepath, mode=&#39;r&#39;);</span>
+<span class="sd">        lines = fp.readlines();</span>
+<span class="sd">        fp.close();</span>
+<span class="sd">        # print(lines)</span>
+
+<span class="sd">        dist_l = [];</span>
+<span class="sd">        for i in range(0, len(lines)):</span>
+<span class="sd">            line = lines[i].replace(&#39;\n&#39;, &#39;&#39;)</span>
+<span class="sd">            line = line.replace(&#39;[&#39;, &#39;&#39;)</span>
+<span class="sd">            line = line.replace(&#39;]&#39;, &#39;&#39;)</span>
+<span class="sd">            line = line.replace(&#39;\&#39;&#39;, &#39;&#39;)</span>
+<span class="sd">            line = line.replace(&#39;,&#39;, &#39;.&#39;)</span>
+<span class="sd">            line = line.replace(&#39; &#39;, &#39;&#39;)</span>
+<span class="sd">            line_split = line.split(&#39;;&#39;)</span>
+<span class="sd">            # print(line_split)</span>
+<span class="sd">            vidname = line_split[0];</span>
+<span class="sd">            distance = float(line_split[1]);</span>
+<span class="sd">            dist_l.append([vidname, distance]);</span>
+
+<span class="sd">        dist_np = np.array(dist_l)</span>
+<span class="sd">        #print(dist_np.shape)</span>
+<span class="sd">        return dist_np</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="Evaluation.calculateSimilarityMetric"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation.calculateSimilarityMetric">[docs]</a>    <span class="k">def</span> <span class="nf">calculateSimilarityMetric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_np</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">4.5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to calculate the similarity metrics based on the pre-calculated raw results.</span>
+
+<span class="sd">        :param results_np: This parameter must hold a valid numpy array.</span>
+<span class="sd">        :param threshold: This parameter holds a threshold. (default: 4.5)</span>
+<span class="sd">        :return: This method returns a numpy array including the final shot boundaries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shot_boundaries_l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_np</span><span class="p">)):</span>
+            <span class="n">vid_name</span> <span class="o">=</span> <span class="n">results_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">results_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">results_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">distances_l</span> <span class="o">=</span> <span class="n">results_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">distances_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">distances_l</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">activate_candidate_selection</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="c1"># just take all frame positions over specified threshold</span>
+
+                <span class="n">THRESHOLD_MODE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">threshold_mode</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">THRESHOLD_MODE</span> <span class="o">==</span> <span class="s2">&quot;adaptive&quot;</span><span class="p">):</span>
+                    <span class="n">shot_l</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">thresholds</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">window_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">window_size</span>
+                    <span class="n">alpha</span> <span class="o">=</span> <span class="n">threshold</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances_np</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">%</span> <span class="n">window_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                            <span class="n">th</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">distances_np</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">window_size</span><span class="p">])</span> <span class="o">*</span> <span class="n">alpha</span>
+                        <span class="n">thresholds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">th</span><span class="p">)</span>
+                    <span class="n">thresholds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">thresholds</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">thresholds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances_np</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">distances_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">thresholds</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                            <span class="n">idx_curr</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                            <span class="n">idx_prev</span> <span class="o">=</span> <span class="n">i</span>
+                            <span class="n">shot_boundaries_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vid_name</span><span class="p">,</span> <span class="n">idx_prev</span><span class="p">,</span> <span class="n">idx_curr</span><span class="p">])</span>
+                            <span class="c1"># print(&quot;cut at: &quot; + str(i) + &quot; -&gt; &quot; + str(i+1))</span>
+                            <span class="c1"># print(i)</span>
+                            <span class="c1"># print(thresholds[i])</span>
+                            <span class="c1"># print(distances_np[i])</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">THRESHOLD_MODE</span> <span class="o">==</span> <span class="s2">&quot;fixed&quot;</span><span class="p">):</span>
+                    <span class="n">idx_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">distances_np</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">idx_max</span><span class="p">)</span>
+
+                    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">idx_max</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">:</span>
+                        <span class="n">final_idx</span> <span class="o">=</span> <span class="n">idx_max</span> <span class="c1">#+ start</span>
+                        <span class="n">shot_boundaries_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vid_name</span><span class="p">,</span> <span class="n">final_idx</span><span class="p">,</span> <span class="n">final_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+                    <span class="k">elif</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">idx_max</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="n">final_idx</span> <span class="o">=</span> <span class="n">idx_max</span> <span class="c1">#+ start</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">final_idx</span><span class="p">)</span>
+                        <span class="c1">#exit()</span>
+                        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">final_idx</span><span class="p">)):</span>
+                            <span class="n">shot_boundaries_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vid_name</span><span class="p">,</span> <span class="n">final_idx</span><span class="p">[</span><span class="n">a</span><span class="p">],</span> <span class="n">final_idx</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">elif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">activate_candidate_selection</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="c1"># just take all frame positions over specified threshold</span>
+                <span class="n">idx_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">distances_np</span><span class="p">)</span>
+                <span class="n">final_idx</span> <span class="o">=</span> <span class="n">idx_max</span> <span class="o">+</span> <span class="n">start</span>
+                <span class="n">shot_boundaries_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vid_name</span><span class="p">,</span> <span class="n">final_idx</span><span class="p">,</span> <span class="n">final_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="c1"># print(final_idx)</span>
+
+            <span class="c1"># cv2.imwrite(&quot;./test_result&quot; + str(i) + &quot;_1.png&quot;, self.vid_instance.getFrame(idx_max[i]))</span>
+            <span class="c1"># cv2.imwrite(&quot;./test_result&quot; + str(i) + &quot;_2.png&quot;, self.vid_instance.getFrame(idx_max[i] + 1))</span>
+
+        <span class="n">shot_boundaries_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shot_boundaries_l</span><span class="p">)</span>
+        <span class="c1">#print(shot_boundaries_np)</span>
+        <span class="k">return</span> <span class="n">shot_boundaries_np</span></div>
+
+<div class="viewcode-block" id="Evaluation.evaluation"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation.evaluation">[docs]</a>    <span class="k">def</span> <span class="nf">evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result_np</span><span class="p">,</span> <span class="n">vid_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is needed to evaluate the gathered results for a specified video.</span>
+
+<span class="sd">        :param result_np: This parameter must hold a valid numpy array.</span>
+<span class="sd">        :param vid_name: This parameter represents a video name.</span>
+<span class="sd">        :return: This method returns the calculated TP, TN, FP and FN counters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#print(&quot;NOT IMPLEMENTED YET&quot;);</span>
+
+        <span class="n">src_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_videos</span>
+        <span class="n">gt_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_gt_data</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_postfix_raw_results</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">):</span>
+            <span class="n">vid_name</span> <span class="o">=</span> <span class="n">vid_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;results_raw_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">vid_name</span> <span class="o">=</span> <span class="n">vid_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_postfix_raw_results</span> <span class="o">==</span> <span class="s1">&#39;npy&#39;</span><span class="p">):</span>
+            <span class="n">vid_name</span> <span class="o">=</span> <span class="n">vid_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;results_raw_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">vid_name</span> <span class="o">=</span> <span class="n">vid_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.npy&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="c1">#print(vid_name)</span>
+        <span class="c1">#vid_name = result_np[0][0];</span>
+        <span class="n">video_obj</span> <span class="o">=</span> <span class="n">Video</span><span class="p">();</span>
+        <span class="n">video_obj</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">src_path</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vid_name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.mp4&quot;</span><span class="p">)</span>
+
+        <span class="c1"># load gt</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">gt_data</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="c1">#print(lines)</span>
+
+        <span class="n">gt_l</span> <span class="o">=</span> <span class="p">[];</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;;&#39;</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">line_split</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+            <span class="c1">#print(line_split)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_split</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">vidname</span> <span class="o">=</span> <span class="n">line_split</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_split</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_split</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_split</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+            <span class="n">sbd_type</span> <span class="o">=</span> <span class="n">line_split</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="n">sbd_type</span> <span class="o">==</span> <span class="s2">&quot;HARDCUT&quot;</span><span class="p">):</span>
+                <span class="n">gt_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vidname</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)])</span>
+
+        <span class="n">gt_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">gt_l</span><span class="p">)</span>
+        <span class="c1">#print(gt_np)</span>
+
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # load pred</span>
+<span class="sd">        fp = open(pred_data, &#39;r&#39;);</span>
+<span class="sd">        lines = fp.readlines();</span>
+<span class="sd">        fp.close();</span>
+<span class="sd">        # print(lines)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1">#print(&quot;AAA&quot;)</span>
+        <span class="c1">#print(result_np)</span>
+        <span class="n">pred_l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">result_np</span><span class="p">)):</span>
+            <span class="n">vidname</span> <span class="o">=</span> <span class="n">result_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">pred_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vidname</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)])</span>
+
+        <span class="n">pred_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pred_l</span><span class="p">)</span>
+        <span class="c1">#print(pred_np)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">vid_name</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">vid_name</span> <span class="o">==</span> <span class="n">pred_np</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">sb_pred_np</span> <span class="o">=</span> <span class="n">pred_np</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="c1">#print(&quot;---------&quot;)</span>
+        <span class="c1">#print(sb_pred_np)</span>
+
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">vid_name</span> <span class="o">==</span> <span class="n">gt_np</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">sb_gt_np</span> <span class="o">=</span> <span class="n">gt_np</span><span class="p">[</span><span class="n">idx</span><span class="p">];</span>
+        <span class="c1">#print(&quot;---------&quot;)</span>
+        <span class="c1">#print(sb_gt_np)</span>
+
+        <span class="c1">#exit()</span>
+
+        <span class="c1"># video-based predictions</span>
+        <span class="n">tp_cnt</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">fp_cnt</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">tn_cnt</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">fn_cnt</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">video_obj</span><span class="o">.</span><span class="n">number_of_frames</span><span class="p">)):</span>
+            <span class="n">curr_pos</span> <span class="o">=</span> <span class="n">j</span>
+            <span class="n">prev_pos</span> <span class="o">=</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span>
+
+            <span class="n">search_tuple</span> <span class="o">=</span> <span class="p">(</span><span class="n">prev_pos</span><span class="p">,</span> <span class="n">curr_pos</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sb_pred_np</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">):</span>
+                <span class="n">list_pred_tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">sb_pred_np</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:])</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">list_pred_tmp</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">list_gt_tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">sb_gt_np</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:])</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+            <span class="n">gt_flag</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">pred_flag</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># found tuple in pred</span>
+                <span class="n">res_pred</span> <span class="o">=</span> <span class="n">list_pred_tmp</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">search_tuple</span><span class="p">)</span>
+                <span class="c1">#print(list_pred_tmp.index(search_tuple))</span>
+                <span class="n">pred_flag</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">res_pred</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># found tuple in gt</span>
+                <span class="n">res_gt</span> <span class="o">=</span> <span class="n">list_gt_tmp</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">search_tuple</span><span class="p">)</span>
+                <span class="c1">#print(list_gt_tmp.index(search_tuple))</span>
+                <span class="n">gt_flag</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">res_gt</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1">#print(str(gt_flag) + &quot; == &quot; + str(pred_flag))</span>
+            <span class="n">tp_cond</span> <span class="o">=</span> <span class="n">gt_flag</span> <span class="ow">and</span> <span class="n">pred_flag</span> <span class="c1"># find tuple in pred &amp;&amp; find tuple in gt --&gt; true</span>
+            <span class="n">fn_cond</span> <span class="o">=</span> <span class="n">gt_flag</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pred_flag</span> <span class="c1"># not find tuple in pred &amp;&amp; find tuple in gt --&gt; true</span>
+            <span class="n">fp_cond</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">gt_flag</span> <span class="ow">and</span> <span class="n">pred_flag</span>
+            <span class="n">tn_cond</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">gt_flag</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pred_flag</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="n">tp_cond</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">tp_cnt</span> <span class="o">=</span> <span class="n">tp_cnt</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">fp_cond</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">fp_cnt</span> <span class="o">=</span> <span class="n">fp_cnt</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">tn_cond</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">tn_cnt</span> <span class="o">=</span> <span class="n">tn_cnt</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">fn_cond</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">fn_cnt</span> <span class="o">=</span> <span class="n">fn_cnt</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="c1">#precision, recall, accuracy, f1_score = self.calculateEvalMetrics(tp_cnt, fp_cnt, tn_cnt, fn_cnt);</span>
+        <span class="c1">#tmp_str = str(vid_name) + &quot;;&quot; + str(tp_cnt) + &quot;;&quot; + str(fp_cnt) + &quot;;&quot; + str(tn_cnt) + &quot;;&quot; + str(</span>
+        <span class="c1">#    fn_cnt) + &quot;;&quot; + str(precision) + &quot;;&quot; + str(recall) + &quot;;&quot; + str(accuracy) + &quot;;&quot; + str(f1_score)</span>
+        <span class="c1">#print(tmp_str)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        print(&quot;---------------------------&quot;)</span>
+<span class="sd">        print(&quot;video-based results&quot;)</span>
+<span class="sd">        print(&quot;TP: &quot; + str(tp_cnt))</span>
+<span class="sd">        print(&quot;FP: &quot; + str(fp_cnt))</span>
+<span class="sd">        print(&quot;TN: &quot; + str(tn_cnt))</span>
+<span class="sd">        print(&quot;FN: &quot; + str(fn_cnt))</span>
+<span class="sd">        </span>
+<span class="sd">        print(&quot;precision: &quot; + str(precision))</span>
+<span class="sd">        print(&quot;recall: &quot; + str(recall))</span>
+<span class="sd">        print(&quot;accuracy: &quot; + str(accuracy))</span>
+<span class="sd">        print(&quot;f1_score: &quot; + str(f1_score))</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">return</span> <span class="n">tp_cnt</span><span class="p">,</span> <span class="n">fp_cnt</span><span class="p">,</span> <span class="n">tn_cnt</span><span class="p">,</span> <span class="n">fn_cnt</span></div>
+
+<div class="viewcode-block" id="Evaluation.calculateMetrics"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation.calculateMetrics">[docs]</a>    <span class="k">def</span> <span class="nf">calculateMetrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tp_cnt</span><span class="p">,</span> <span class="n">fp_cnt</span><span class="p">,</span> <span class="n">tn_cnt</span><span class="p">,</span> <span class="n">fn_cnt</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to calculate the evaluation metrics precision, recall and f1score.</span>
+
+<span class="sd">        :param tp_cnt: This parameter must hold a valid integer representing the tp counter.</span>
+<span class="sd">        :param fp_cnt: This parameter must hold a valid integer representing the fp counter.</span>
+<span class="sd">        :param tn_cnt: This parameter must hold a valid integer representing the tn counter.</span>
+<span class="sd">        :param fn_cnt: This parameter must hold a valid integer representing the fn counter.</span>
+<span class="sd">        :return: This method returns the scores for precision, recall, accuracy, f1_score, tp_rate and fp_rate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># calculate precision, recall,  accuracy</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">tp_cnt</span> <span class="o">+</span> <span class="n">fp_cnt</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">precision</span> <span class="o">=</span> <span class="n">tp_cnt</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp_cnt</span> <span class="o">+</span> <span class="n">fp_cnt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">precision</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">tp_cnt</span> <span class="o">+</span> <span class="n">fn_cnt</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">recall</span> <span class="o">=</span> <span class="n">tp_cnt</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp_cnt</span> <span class="o">+</span> <span class="n">fn_cnt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">recall</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="p">((</span><span class="n">tp_cnt</span> <span class="o">+</span> <span class="n">tn_cnt</span> <span class="o">+</span> <span class="n">fp_cnt</span> <span class="o">+</span> <span class="n">fn_cnt</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">accuracy</span> <span class="o">=</span> <span class="p">(</span><span class="n">tp_cnt</span> <span class="o">+</span> <span class="n">tn_cnt</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp_cnt</span> <span class="o">+</span> <span class="n">tn_cnt</span> <span class="o">+</span> <span class="n">fp_cnt</span> <span class="o">+</span> <span class="n">fn_cnt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">accuracy</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="p">((</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">f1_score</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">precision</span> <span class="o">*</span> <span class="n">recall</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f1_score</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="p">((</span><span class="n">tp_cnt</span> <span class="o">+</span> <span class="n">fn_cnt</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">tp_rate</span> <span class="o">=</span> <span class="n">tp_cnt</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp_cnt</span> <span class="o">+</span> <span class="n">fn_cnt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tp_rate</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="p">((</span><span class="n">tn_cnt</span> <span class="o">+</span> <span class="n">fp_cnt</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="c1">#Specificity = True Negatives / (True Negatives + False Positives)</span>
+            <span class="n">fp_rate</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">tn_cnt</span> <span class="o">/</span> <span class="p">(</span><span class="n">tn_cnt</span> <span class="o">+</span> <span class="n">fp_cnt</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fp_rate</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+        <span class="k">return</span> <span class="n">precision</span><span class="p">,</span> <span class="n">recall</span><span class="p">,</span> <span class="n">accuracy</span><span class="p">,</span> <span class="n">f1_score</span><span class="p">,</span> <span class="n">tp_rate</span><span class="p">,</span> <span class="n">fp_rate</span></div>
+
+<div class="viewcode-block" id="Evaluation.calculateEvaluationMetrics"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation.calculateEvaluationMetrics">[docs]</a>    <span class="k">def</span> <span class="nf">calculateEvaluationMetrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to calculate the evaluation metrics.</span>
+
+<span class="sd">        :return: This methods returns a numpy array including a list of the calculated metrics (precision, recall, ...).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_postfix_raw_results</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">):</span>
+            <span class="n">vid_name_list</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_raw_results_eval</span><span class="p">))</span>
+            <span class="n">vid_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">vid_name_list</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_postfix_raw_results</span> <span class="o">==</span> <span class="s1">&#39;npy&#39;</span><span class="p">):</span>
+            <span class="n">vid_name_list</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_raw_results_eval</span><span class="p">))</span>
+            <span class="n">vid_name_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">vid_name_list</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.npy&#39;</span><span class="p">)]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">vid_name_list</span><span class="p">)</span>
+
+        <span class="n">final_results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">fp_video_based</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">threshold_mode</span> <span class="o">==</span> <span class="s1">&#39;adaptive&#39;</span><span class="p">):</span>
+            <span class="n">thresholds_l</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.8</span><span class="p">,</span> <span class="mf">1.9</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> <span class="mf">2.2</span><span class="p">,</span> <span class="mf">2.3</span><span class="p">,</span> <span class="mf">2.4</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">2.6</span><span class="p">,</span> <span class="mf">2.7</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">,</span> <span class="mf">2.9</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.3</span><span class="p">,</span> <span class="mf">3.4</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.55</span><span class="p">,</span> <span class="mf">3.6</span><span class="p">,</span> <span class="mf">3.65</span><span class="p">,</span> <span class="mf">3.7</span><span class="p">,</span> <span class="mf">3.75</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">]</span>
+        <span class="k">elif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">threshold_mode</span> <span class="o">==</span> <span class="s1">&#39;fixed&#39;</span><span class="p">):</span>
+            <span class="n">thresholds_l</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mf">0.90</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">,</span> <span class="mf">0.80</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.70</span><span class="p">,</span> <span class="mf">0.65</span><span class="p">,</span> <span class="mf">0.60</span><span class="p">,</span> <span class="mf">0.55</span><span class="p">,</span>
+                            <span class="mf">0.50</span><span class="p">,</span> <span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.40</span><span class="p">,</span> <span class="mf">0.35</span><span class="p">,</span> <span class="mf">0.30</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.20</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.10</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">thresholds_l</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thresholds_l</span><span class="p">:</span>
+        <span class="c1">#for s in range(0, 1000):</span>
+            <span class="n">tp_sum</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">fp_sum</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">tn_sum</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">fn_sum</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1">#THRESHOLD = s * 0.001;</span>
+            <span class="n">THRESHOLD</span> <span class="o">=</span> <span class="n">t</span>
+            <span class="c1">#print(&quot;step: &quot; + str(s))</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">save_eval_results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">fp_video_based</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_eval_results</span> <span class="o">+</span> <span class="s2">&quot;/final_results_th-&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">THRESHOLD</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.csv&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+                <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;vid_name;tp;fp;tn;fn;p;r;acc;f1_score;tp_rate;fp_rate&quot;</span>
+                <span class="n">fp_video_based</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">results_l</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">vid_name</span> <span class="ow">in</span> <span class="n">vid_name_list</span><span class="p">:</span>
+                <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_postfix_raw_results</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">):</span>
+                    <span class="n">results_np</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadRawResultsFromCsv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_raw_results_eval</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">vid_name</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_postfix_raw_results</span> <span class="o">==</span> <span class="s1">&#39;npy&#39;</span><span class="p">):</span>
+                    <span class="n">results_np</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadRawResultsFromNumpy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_raw_results_eval</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">vid_name</span><span class="p">)</span>
+
+                <span class="c1"># calculate similarity measures of consecutive frames and threshold it</span>
+                <span class="n">shot_boundaries_np1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateSimilarityMetric</span><span class="p">(</span><span class="n">results_np</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">THRESHOLD</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">shot_boundaries_np1</span><span class="p">)</span>
+                <span class="c1">#continue</span>
+
+                <span class="c1">#if (len(shot_boundaries_np1) != 0):</span>
+                <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluation</span><span class="p">(</span><span class="n">shot_boundaries_np1</span><span class="p">,</span> <span class="n">vid_name</span><span class="p">);</span>
+                <span class="n">p</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">f1_score</span><span class="p">,</span> <span class="n">tp_rate</span><span class="p">,</span> <span class="n">fp_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateMetrics</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fn</span><span class="p">);</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">save_eval_results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">tmp_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">vid_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;results_raw_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="o">+</span> \
+                              <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tn</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> \
+                              <span class="nb">str</span><span class="p">(</span><span class="n">f1_score</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tp_rate</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fp_rate</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">tmp_str</span><span class="p">)</span>
+                    <span class="n">fp_video_based</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tmp_str</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1">#else:</span>
+                <span class="c1">#    tp = 0;</span>
+                <span class="c1">#    fp = 0;</span>
+                <span class="c1">#    tn = 0;</span>
+                <span class="c1">#    fn = 0;</span>
+                <span class="c1">#    p = 0;</span>
+                <span class="c1">#    r = 0;</span>
+                <span class="c1">#    acc = 0;</span>
+                <span class="c1">#    f1_score = 0;</span>
+                <span class="n">results_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vid_name</span><span class="p">,</span> <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">f1_score</span><span class="p">])</span>
+
+                <span class="n">tp_sum</span> <span class="o">=</span> <span class="n">tp_sum</span> <span class="o">+</span> <span class="n">tp</span>
+                <span class="n">fp_sum</span> <span class="o">=</span> <span class="n">fp_sum</span> <span class="o">+</span> <span class="n">fp</span>
+                <span class="n">tn_sum</span> <span class="o">=</span> <span class="n">tn_sum</span> <span class="o">+</span> <span class="n">tn</span>
+                <span class="n">fn_sum</span> <span class="o">=</span> <span class="n">fn_sum</span> <span class="o">+</span> <span class="n">fn</span>
+
+            <span class="n">p</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">f1_score</span><span class="p">,</span> <span class="n">tp_rate</span><span class="p">,</span> <span class="n">fp_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateMetrics</span><span class="p">(</span><span class="n">tp_sum</span><span class="p">,</span> <span class="n">fp_sum</span><span class="p">,</span> <span class="n">tn_sum</span><span class="p">,</span> <span class="n">fn_sum</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">save_eval_results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">tmp_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s2">&quot;overall&quot;</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tp_sum</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fp_sum</span><span class="p">)</span> <span class="o">+</span> \
+                          <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tn_sum</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fn_sum</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> \
+                          <span class="nb">str</span><span class="p">(</span><span class="n">f1_score</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tp_rate</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">fp_rate</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">tmp_str</span><span class="p">)</span>
+
+                <span class="n">fp_video_based</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tmp_str</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">fp_video_based</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+            <span class="n">final_results</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">THRESHOLD</span><span class="p">),</span> <span class="n">tp_sum</span><span class="p">,</span> <span class="n">fp_sum</span><span class="p">,</span> <span class="n">tn_sum</span><span class="p">,</span> <span class="n">fn_sum</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">f1_score</span><span class="p">,</span> <span class="n">tp_rate</span><span class="p">,</span> <span class="n">fp_rate</span><span class="p">])</span>
+        <span class="n">final_results_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">final_results</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">final_results_np</span></div>
+
+<div class="viewcode-block" id="Evaluation.plotPRCurve"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation.plotPRCurve">[docs]</a>    <span class="k">def</span> <span class="nf">plotPRCurve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_np</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is needed to create and plot the precision_recall curve.</span>
+
+<span class="sd">        :param results_np: This parameter must hold a vaild numpy array including the precision and recall scores.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plot precision recall curve ... &quot;</span><span class="p">)</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">results_np</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">5</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">recall</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">results_np</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">6</span><span class="p">:</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">step_kwargs</span> <span class="o">=</span> <span class="p">({</span><span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="s1">&#39;post&#39;</span><span class="p">}</span>
+                       <span class="k">if</span> <span class="s1">&#39;step&#39;</span> <span class="ow">in</span> <span class="n">signature</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
+                       <span class="k">else</span> <span class="p">{})</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">step_kwargs</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Recall&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Precision&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;2-class Precision-Recall curve&quot;</span><span class="p">);</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_eval_results</span> <span class="o">+</span> <span class="s2">&quot;/pr_curve.png&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Evaluation.plotROCCurve"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation.plotROCCurve">[docs]</a>    <span class="k">def</span> <span class="nf">plotROCCurve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_np</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is needed to create and plot the roc curve.</span>
+
+<span class="sd">        :param results_np: This parameter must hold a vaild numpy array including the precision and recall scores.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plot roc curve ... &quot;</span><span class="p">)</span>
+        <span class="n">tp_rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">results_np</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">8</span><span class="p">:</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">fp_rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">results_np</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">9</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fp_rate</span><span class="p">,</span> <span class="n">tp_rate</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;orange&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;ROC&#39;</span><span class="p">)</span>
+        <span class="c1">#plt.plot([0, 1], [0, 1], color=&#39;darkblue&#39;, linestyle=&#39;--&#39;)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;False Positive Rate&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;True Positive Rate&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Receiver Operating Characteristic (ROC) Curve&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_eval_results</span> <span class="o">+</span> <span class="s2">&quot;/roc_curve.png&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Evaluation.export2CSV"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation.export2CSV">[docs]</a>    <span class="k">def</span> <span class="nf">export2CSV</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_np</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">header</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to export the gathered results to a csv file.</span>
+
+<span class="sd">        :param data_np: This parameter holds a valid numpy array.</span>
+<span class="sd">        :param header: This parameter holds a csv header line (first line in the file - semicolon seperated).</span>
+<span class="sd">        :param filename: This parameter must hold a valid file name.</span>
+<span class="sd">        :param path: THis parameter must hold a valid file path.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># save to csv file</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.csv&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_np</span><span class="p">)):</span>
+            <span class="n">tmp_str</span> <span class="o">=</span> <span class="n">data_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_np</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+                <span class="n">tmp_str</span> <span class="o">=</span> <span class="n">tmp_str</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="n">data_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+                <span class="c1"># print(str(i) + &quot;/&quot; + str(j) + &quot; - &quot; + tmp_str)</span>
+            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tmp_str</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Evaluation.exportMovieResultsToCSV"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation.exportMovieResultsToCSV">[docs]</a>    <span class="k">def</span> <span class="nf">exportMovieResultsToCSV</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fName</span><span class="p">,</span> <span class="n">res_np</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to export video results to csv file.</span>
+
+<span class="sd">        :param filepath: This parameter must hold a valid file_path.</span>
+<span class="sd">        :param res_np: This parameter must hold a valid numpy array containing the final results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;start csv export ...&quot;</span><span class="p">)</span>
+        <span class="n">fName</span> <span class="o">=</span> <span class="n">fName</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span>
+
+        <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fName</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_movie_based.csv&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+
+        <span class="n">tmp_str</span> <span class="o">=</span> <span class="s2">&quot;vidname;precision;recall;f1score&quot;</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tmp_str</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">res_np</span><span class="p">)):</span>
+            <span class="c1">#print(sb_np[i])</span>
+            <span class="n">vidname</span> <span class="o">=</span> <span class="n">res_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">res_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">res_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">f1</span> <span class="o">=</span> <span class="n">res_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">tmp_str</span> <span class="o">=</span> <span class="n">vidname</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">f1</span><span class="p">)</span>
+            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tmp_str</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1">#csv_writer.writerow(row);</span>
+
+        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Evaluation.loadResultsFromCSV"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation.loadResultsFromCSV">[docs]</a>    <span class="k">def</span> <span class="nf">loadResultsFromCSV</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to load final results from csv file.</span>
+
+<span class="sd">        :param filepath: This parameter must hold a valid file_path.</span>
+<span class="sd">        :return: This method returns a numpy array containing the final results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;load data from csv file ...&quot;</span><span class="p">)</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">csv_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+        <span class="n">res_l</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">csv_reader</span><span class="p">:</span>
+            <span class="n">res_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">res_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">res_l</span><span class="p">)</span>
+        <span class="c1">#print(res_np)</span>
+
+        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">res_np</span></div>
+
+<div class="viewcode-block" id="Evaluation.loadRawResultsFromNumpy"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation.loadRawResultsFromNumpy">[docs]</a>    <span class="k">def</span> <span class="nf">loadRawResultsFromNumpy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to load raw results from numpy array.</span>
+
+<span class="sd">        :param filepath: This parameter must hold a valid file_path.</span>
+<span class="sd">        :return: This method returns a numpy array containing the raw_results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># save raw results to file</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;load raw results from numpy ...&quot;</span><span class="p">)</span>
+        <span class="n">vid_name</span> <span class="o">=</span> <span class="n">filepath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">raw_results</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">start</span> <span class="o">=</span> <span class="n">raw_results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">stop</span> <span class="o">=</span> <span class="n">raw_results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">dist_l</span> <span class="o">=</span> <span class="n">raw_results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">dist_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dist_l</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float&#39;</span><span class="p">)</span>
+
+        <span class="n">array_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">array_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vid_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;results_raw_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">dist_np</span><span class="p">])</span>
+        <span class="n">array_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">array_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">array_np</span><span class="p">;</span></div>
+
+<div class="viewcode-block" id="Evaluation.loadRawResultsFromCsv"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation.loadRawResultsFromCsv">[docs]</a>    <span class="k">def</span> <span class="nf">loadRawResultsFromCsv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to load raw results from csv file.</span>
+
+<span class="sd">        :param filepath: This parameter must hold a valid file_path.</span>
+<span class="sd">        :return: This method returns a numpy array containing the raw_results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># save raw results to file</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="c1">#print(len(lines))</span>
+
+        <span class="n">final_l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="c1">#line = line.replace(&#39;list&#39;, &#39;&#39;)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span>
+            <span class="c1">#line = line.replace(&#39; &#39;, &#39;&#39;)</span>
+            <span class="n">line_split</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+            <span class="n">vidname</span> <span class="o">=</span> <span class="n">line_split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_split</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line_split</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">dist_l</span> <span class="o">=</span> <span class="n">line_split</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span>
+            <span class="n">dist_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dist_l</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float&#39;</span><span class="p">)</span>
+            <span class="n">final_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vidname</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">dist_np</span><span class="p">])</span>
+
+        <span class="n">final_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">final_l</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">final_np</span></div>
+
+<div class="viewcode-block" id="Evaluation.run"><a class="viewcode-back" href="../../Evaluation.html#sbd.Evaluation.Evaluation.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is needed to run the evaluation process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;evaluation ... &quot;</span><span class="p">)</span>
+
+        <span class="n">final_results_np</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateEvaluationMetrics</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">final_results_np</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotPRCurve</span><span class="p">(</span><span class="n">final_results_np</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotROCCurve</span><span class="p">(</span><span class="n">final_results_np</span><span class="p">)</span>
+
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        # export results to csv file</span>
+<span class="sd">        self.export2CSV(final_results_np,</span>
+<span class="sd">                                     &quot;threshold;p;r;acc;f1_score&quot; + &quot;\n&quot;,</span>
+<span class="sd">                                     &quot;final_evaluation_pr_curve&quot;,</span>
+<span class="sd">                                     &quot;../Develop/&quot;);</span>
+<span class="sd">        &#39;&#39;&#39;</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">VHH Plugin Package: Shot Boundary Detection (vhh_sbd) 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Daniel Helm.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
+    </div>
+  </body>
+</html>

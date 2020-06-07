@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>SBD class &#8212; VHH Plugin Package: Shot Boundary Detection (vhh_sbd) 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Video class" href="Video.html" />
+    <link rel="prev" title="PreProcessing class" href="PreProcessing.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="Video.html" title="Video class"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="PreProcessing.html" title="PreProcessing class"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">VHH Plugin Package: Shot Boundary Detection (vhh_sbd) 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="sbd-class">
+<h1>SBD class<a class="headerlink" href="#sbd-class" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="sbd.SBD.SBD">
+<em class="property">class </em><code class="sig-prename descclassname">sbd.SBD.</code><code class="sig-name descname">SBD</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/SBD.html#SBD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.SBD.SBD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Main class of shot boundary detection (sbd) package.</p>
+<dl class="py method">
+<dt id="sbd.SBD.SBD.calculateDistance">
+<code class="sig-name descname">calculateDistance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/SBD.html#SBD.calculateDistance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.SBD.SBD.calculateDistance" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to calculate the distance between 2 feature vectors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – This parameter represents a feature vector (one-dimensional)</p></li>
+<li><p><strong>y</strong> – This parameter represents a feature vector (one-dimensional)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>This method returns the similarity score of a specified distance metric.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.SBD.SBD.convertShotBoundaries2Shots">
+<code class="sig-name descname">convertShotBoundaries2Shots</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shot_boundaries_np</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/SBD.html#SBD.convertShotBoundaries2Shots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.SBD.SBD.convertShotBoundaries2Shots" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method converts a list with detected shot boundaries to the final shots.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>shot_boundaries_np</strong> – This parameter must hold a numpy array with all detected shot boundaries.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>This method returns a numpy list with the final shots.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.SBD.SBD.exportFinalResultsToCsv">
+<code class="sig-name descname">exportFinalResultsToCsv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shot_l</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/SBD.html#SBD.exportFinalResultsToCsv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.SBD.SBD.exportFinalResultsToCsv" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to export the final results to a csv file (semicolon seperated).
+:param shot_l: This parameter must hold a valid array list including the final results list.
+:param name: This parameter represents the name of the csv list.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.SBD.SBD.exportRawResultsAsCsv_New">
+<code class="sig-name descname">exportRawResultsAsCsv_New</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">results_np</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/SBD.html#SBD.exportRawResultsAsCsv_New"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.SBD.SBD.exportRawResultsAsCsv_New" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to export the raw results to a csv file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>results_np</strong> – This parameter must hold a valid numpy list including the raw results.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.SBD.SBD.exportRawResultsAsNumpy">
+<code class="sig-name descname">exportRawResultsAsNumpy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">results_np</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/SBD.html#SBD.exportRawResultsAsNumpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.SBD.SBD.exportRawResultsAsNumpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to export the raw results to a numpy file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>results_np</strong> – This parameter must hold a valid numpy list including the raw results.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.SBD.SBD.runOnFolder">
+<code class="sig-name descname">runOnFolder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/SBD.html#SBD.runOnFolder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.SBD.SBD.runOnFolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to run sbd on all video files included in a specified folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>This method returns a numpy list of all detected shots in all videos.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.SBD.SBD.runOnSingleVideo">
+<code class="sig-name descname">runOnSingleVideo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">video_filename</span></em>, <em class="sig-param"><span class="n">max_recall_id</span><span class="o">=</span><span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/SBD.html#SBD.runOnSingleVideo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.SBD.SBD.runOnSingleVideo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to run sbd on specified video.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>video_filename</strong> – This parameter must hold a valid video file path.</p></li>
+<li><p><strong>max_recall_id</strong> – [required] integer value holding unique video id from VHH MMSI system</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.SBD.SBD.runWithCandidateSelection">
+<code class="sig-name descname">runWithCandidateSelection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">candidates_np</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/SBD.html#SBD.runWithCandidateSelection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.SBD.SBD.runWithCandidateSelection" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to run sbd with candidate selection mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>candidates_np</strong> – THis parameter must hold a valid numpy list including all pre-selected candidates.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>This method returns a numpy list with all detected shots in a video.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sbd.SBD.SBD.runWithoutCandidateSelection">
+<code class="sig-name descname">runWithoutCandidateSelection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src_path</span></em>, <em class="sig-param"><span class="n">vid_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sbd/SBD.html#SBD.runWithoutCandidateSelection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sbd.SBD.SBD.runWithoutCandidateSelection" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is used to run sbd without candidate selection mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_path</strong> – THis parameter must hold a valid path to the video file.</p></li>
+<li><p><strong>vid_name</strong> – This parameter must hold a valid videofile name.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>This method returns a numpy list with all detected shots in a video.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="PreProcessing.html"
+                        title="previous chapter">PreProcessing class</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Video.html"
+                        title="next chapter">Video class</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/SBD.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="Video.html" title="Video class"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="PreProcessing.html" title="PreProcessing class"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">VHH Plugin Package: Shot Boundary Detection (vhh_sbd) 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Daniel Helm.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
+    </div>
+  </body>
+</html>

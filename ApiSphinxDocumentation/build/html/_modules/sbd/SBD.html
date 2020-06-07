@@ -1,0 +1,528 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>sbd.SBD &#8212; VHH Plugin Package: Shot Boundary Detection (vhh_sbd) 1.0.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">VHH Plugin Package: Shot Boundary Detection (vhh_sbd) 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for sbd.SBD</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">sbd.Video</span> <span class="k">import</span> <span class="n">Video</span><span class="p">,</span> <span class="n">VideoDataset</span>
+<span class="kn">from</span> <span class="nn">sbd.utils</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">sbd.Configuration</span> <span class="k">import</span> <span class="n">Configuration</span>
+<span class="kn">from</span> <span class="nn">sbd.Shot</span> <span class="k">import</span> <span class="n">Shot</span>
+<span class="kn">from</span> <span class="nn">sbd.PreProcessing</span> <span class="k">import</span> <span class="n">PreProcessing</span>
+<span class="kn">from</span> <span class="nn">sbd.Model</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">distance</span>
+<span class="kn">from</span> <span class="nn">sbd.DeepSBD</span> <span class="k">import</span> <span class="n">CandidateSelection</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+
+
+<div class="viewcode-block" id="SBD"><a class="viewcode-back" href="../../SBD.html#sbd.SBD.SBD">[docs]</a><span class="k">class</span> <span class="nc">SBD</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main class of shot boundary detection (sbd) package.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor</span>
+
+<span class="sd">        :param config_file: [required] path to configuration file (e.g. PATH_TO/config.yaml)</span>
+<span class="sd">                                       must be with extension &quot;.yaml&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#printCustom(&quot;INFO: create instance of sbd ... &quot;, STDOUT_TYPE.INFO);</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">config_file</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;No configuration file specified!&quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span> <span class="o">=</span> <span class="n">Configuration</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">loadConfig</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre_proc_instance</span> <span class="o">=</span> <span class="n">PreProcessing</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">candidate_selection_instance</span> <span class="o">=</span> <span class="n">CandidateSelection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">src_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename_l</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+<div class="viewcode-block" id="SBD.runOnFolder"><a class="viewcode-back" href="../../SBD.html#sbd.SBD.SBD.runOnFolder">[docs]</a>    <span class="k">def</span> <span class="nf">runOnFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to run sbd on all video files included in a specified folder.</span>
+
+<span class="sd">        :return: This method returns a numpy list of all detected shots in all videos.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shots_np</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">src_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_videos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename_l</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src_path</span><span class="p">)</span>
+        <span class="n">vid_name_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename_l</span>
+
+        <span class="n">shot_boundaries_l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">vid_name</span> <span class="ow">in</span> <span class="n">vid_name_l</span><span class="p">:</span>
+            <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;--------------------------&quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+            <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;Process video: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vid_name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; ... &quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+            <span class="c1"># load video</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span> <span class="o">=</span> <span class="n">Video</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src_path</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">vid_name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">activate_candidate_selection</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="c1"># candidate selection</span>
+                <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;Process candidate selection: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vid_name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; ... &quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+                <span class="n">candidate_selection_result_np</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_selection_instance</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src_path</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">vid_name</span><span class="p">)</span>
+
+                <span class="c1"># shot boundary detection</span>
+                <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;Process shot boundary detection: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vid_name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; ... &quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+                <span class="n">shots_np</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runWithCandidateSelection</span><span class="p">(</span><span class="n">candidate_selection_result_np</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">activate_candidate_selection</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="c1"># shot boundary detection</span>
+                <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;Process shot boundary detection: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vid_name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; ... &quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+                <span class="n">shots_np</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runWithoutCandidateSelection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src_path</span><span class="p">,</span> <span class="n">vid_name</span><span class="p">)</span>
+
+            <span class="c1"># convert shot boundaries to final shots</span>
+            <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shots_np</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">shots_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convertShotBoundaries2Shots</span><span class="p">(</span><span class="n">shots_np</span><span class="p">)</span>
+
+            <span class="c1"># export final results</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">save_final_results</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exportFinalResultsToCsv</span><span class="p">(</span><span class="n">shots_l</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">vid_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span>
+
+            <span class="n">shot_boundaries_l</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">shots_np</span><span class="p">)</span>
+
+        <span class="n">shot_boundaries_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shot_boundaries_l</span><span class="p">))</span>
+
+        <span class="c1"># convert shot boundaries to final shots</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shot_boundaries_np</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">final_shot_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convertShotBoundaries2Shots</span><span class="p">(</span><span class="n">shot_boundaries_np</span><span class="p">)</span>
+
+        <span class="c1"># export final results</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">save_final_results</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exportFinalResultsToCsv</span><span class="p">(</span><span class="n">final_shot_l</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">final_shot_l</span></div>
+
+<div class="viewcode-block" id="SBD.runOnSingleVideo"><a class="viewcode-back" href="../../SBD.html#sbd.SBD.SBD.runOnSingleVideo">[docs]</a>    <span class="k">def</span> <span class="nf">runOnSingleVideo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">video_filename</span><span class="p">,</span> <span class="n">max_recall_id</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to run sbd on specified video.</span>
+
+<span class="sd">        :param video_filename: This parameter must hold a valid video file path.</span>
+<span class="sd">        :param max_recall_id: [required] integer value holding unique video id from VHH MMSI system</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">shot_boundaries_l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">src_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_videos</span>
+
+        <span class="n">vid_name</span> <span class="o">=</span> <span class="n">video_filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;--------------------------&quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+        <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;Process video: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vid_name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; ... &quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+        <span class="c1"># load video</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span> <span class="o">=</span> <span class="n">Video</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">video_filename</span><span class="p">)</span>
+
+        <span class="n">shot_boundaries_np</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">activate_candidate_selection</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># candidate selection</span>
+            <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;Process candidate selection: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vid_name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; ... &quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+            <span class="n">candidate_selection_result_np</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidate_selection_instance</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">video_filename</span><span class="p">)</span>
+
+            <span class="c1"># shot boundary detection</span>
+            <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;Process shot boundary detection: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vid_name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; ... &quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+            <span class="n">shots_np</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runWithCandidateSelection</span><span class="p">(</span><span class="n">candidate_selection_result_np</span><span class="p">)</span>
+            <span class="n">shot_boundaries_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shots_np</span><span class="p">)</span>
+            <span class="n">shot_boundaries_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shot_boundaries_l</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">activate_candidate_selection</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="c1"># shot boundary detection</span>
+            <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;Process shot boundary detection: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vid_name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; ... &quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+            <span class="n">shot_boundaries_np</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runWithoutCandidateSelection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src_path</span><span class="p">,</span> <span class="n">vid_name</span><span class="p">)</span>
+
+
+        <span class="c1"># convert shot boundaries to final shots</span>
+        <span class="n">final_shot_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convertShotBoundaries2Shots</span><span class="p">(</span><span class="n">shot_boundaries_np</span><span class="p">)</span>
+
+        <span class="c1"># export final results</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">save_final_results</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exportFinalResultsToCsv</span><span class="p">(</span><span class="n">final_shot_l</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_recall_id</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">final_shot_l</span></div>
+
+<div class="viewcode-block" id="SBD.runWithoutCandidateSelection"><a class="viewcode-back" href="../../SBD.html#sbd.SBD.SBD.runWithoutCandidateSelection">[docs]</a>    <span class="k">def</span> <span class="nf">runWithoutCandidateSelection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_path</span><span class="p">,</span> <span class="n">vid_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to run sbd without candidate selection mode.</span>
+
+<span class="sd">        :param src_path: THis parameter must hold a valid path to the video file.</span>
+<span class="sd">        :param vid_name: This parameter must hold a valid videofile name.</span>
+<span class="sd">        :return: This method returns a numpy list with all detected shots in a video.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#printCustom(&quot;process shot detection ... &quot;, STDOUT_TYPE.INFO);</span>
+
+        <span class="c1"># load video</span>
+        <span class="n">trans</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">transforms</span><span class="o">.</span><span class="n">CenterCrop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">resize_dim</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                                    <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()</span>
+                                    <span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span> <span class="o">=</span> <span class="n">VideoDataset</span><span class="p">(</span><span class="n">src_path</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">vid_name</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">trans</span><span class="p">)</span>
+
+        <span class="c1"># initial pre-trained model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">PyTorchModel</span><span class="p">(</span><span class="n">model_arch</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">backbone_cnn</span><span class="p">)</span>
+
+        <span class="c1"># read all frames of video</span>
+        <span class="n">cap</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">VideoCapture</span><span class="p">(</span><span class="n">src_path</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">vid_name</span><span class="p">)</span>
+        <span class="n">frame_l</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">cnt</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">cnt</span> <span class="o">=</span> <span class="n">cnt</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">ret</span><span class="p">,</span> <span class="n">frame</span> <span class="o">=</span> <span class="n">cap</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="c1">#print(cnt)</span>
+            <span class="c1">#print(ret)</span>
+            <span class="c1">#print(cap.get(cv2.CAP_PROP_FRAME_COUNT))</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_proc_instance</span><span class="o">.</span><span class="n">applyTransformOnImg</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                <span class="n">frame_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                <span class="c1">#cv2.imwrite(self.config_instance.path_eval_results + vid_name + &quot;_&quot; + str(cnt) + &quot;.png&quot;, frame)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="c1">#exit()</span>
+        <span class="n">frame_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">frame_l</span><span class="p">)</span>
+
+        <span class="c1"># calculate features and similarities</span>
+        <span class="n">number_of_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame_np</span><span class="p">)</span>
+        <span class="c1">#number_of_frames = 1000</span>
+        <span class="n">results_l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">shot_l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">number_of_frames</span><span class="p">):</span>
+            <span class="c1">#print(&quot;-------------------&quot;)</span>
+            <span class="c1">#print(&quot;process &quot; + str(i))</span>
+            <span class="n">idx_curr</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">idx_prev</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+
+            <span class="n">frm_prev</span> <span class="o">=</span> <span class="n">frame_np</span><span class="p">[</span><span class="n">idx_prev</span><span class="p">]</span>
+            <span class="n">frm_curr</span> <span class="o">=</span> <span class="n">frame_np</span><span class="p">[</span><span class="n">idx_curr</span><span class="p">]</span>
+
+            <span class="c1"># print(&quot;process core part ... &quot;)</span>
+            <span class="n">feature_prev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">getFeatures</span><span class="p">(</span><span class="n">frm_prev</span><span class="p">)</span>
+            <span class="n">feature_curr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">getFeatures</span><span class="p">(</span><span class="n">frm_curr</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateDistance</span><span class="p">(</span><span class="n">feature_prev</span><span class="p">,</span> <span class="n">feature_curr</span><span class="p">)</span>
+            <span class="c1"># print(result)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">save_raw_results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">results_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+        <span class="c1"># calculate thresholds</span>
+        <span class="n">distances_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results_l</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">threshold_mode</span> <span class="o">==</span> <span class="s1">&#39;adaptive&#39;</span><span class="p">):</span>
+            <span class="n">thresholds</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">window_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">window_size</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">threshold</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances_np</span><span class="p">)):</span>
+
+                <span class="k">if</span><span class="p">(</span><span class="n">i</span> <span class="o">%</span> <span class="n">window_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="c1">#print(distances_np)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">distances_np</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">window_size</span><span class="p">])</span>
+                    <span class="n">th</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">distances_np</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">window_size</span><span class="p">])</span> <span class="o">*</span> <span class="mf">6.0</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">th</span><span class="p">)</span>
+
+                <span class="n">thresholds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">th</span><span class="p">)</span>
+            <span class="n">thresholds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">thresholds</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">thresholds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="c1">#exit()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances_np</span><span class="p">)):</span>
+                <span class="c1">#print(&quot;####################&quot;)</span>
+                <span class="c1">#print(i)</span>
+                <span class="c1">#print(&quot;th: &quot; + str(thresholds[i]))</span>
+                <span class="c1">#print(&quot;dist: &quot; + str(distances_np[i]))</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">distances_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">thresholds</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                    <span class="n">idx_curr</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">idx_prev</span> <span class="o">=</span> <span class="n">i</span>
+
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;cut at: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; -&gt; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+                    <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;Abrupt Cut detected: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx_prev</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx_curr</span><span class="p">),</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+                    <span class="n">shot_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span><span class="o">.</span><span class="n">vidName</span><span class="p">,</span> <span class="p">(</span><span class="n">idx_prev</span><span class="p">,</span> <span class="n">idx_curr</span><span class="p">)])</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">threshold_mode</span> <span class="o">==</span> <span class="s1">&#39;fixed&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances_np</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">distances_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">threshold</span><span class="p">):</span>
+                    <span class="n">idx_curr</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">idx_prev</span> <span class="o">=</span> <span class="n">i</span>
+
+                    <span class="c1"># print(&quot;cut at: &quot; + str(i) + &quot; -&gt; &quot; + str(i+1))</span>
+                    <span class="c1"># print(i)</span>
+                    <span class="c1"># print(thresholds[i])</span>
+                    <span class="c1"># print(distances_np[i])</span>
+                    <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;Abrupt Cut detected: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx_prev</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx_curr</span><span class="p">),</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+                    <span class="n">shot_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span><span class="o">.</span><span class="n">vidName</span><span class="p">,</span> <span class="p">(</span><span class="n">idx_prev</span><span class="p">,</span> <span class="n">idx_curr</span><span class="p">)])</span>
+
+
+        <span class="c1"># save raw results to file</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">save_raw_results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;save raw results ... &quot;</span><span class="p">)</span>
+            <span class="n">raw_results_l</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">raw_results_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">number_of_frames</span><span class="p">,</span> <span class="n">results_l</span><span class="p">])</span>
+            <span class="n">results_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">raw_results_l</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_postfix_raw_results</span> <span class="o">==</span> <span class="s1">&#39;csv&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exportRawResultsAsCsv_New</span><span class="p">(</span><span class="n">results_np</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_postfix_raw_results</span> <span class="o">==</span> <span class="s1">&#39;npy&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exportRawResultsAsNumpy</span><span class="p">(</span><span class="n">results_np</span><span class="p">)</span>
+
+        <span class="c1"># convert shot boundaries to shots</span>
+        <span class="n">shots_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shot_l</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">shots_np</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">shots_np</span></div>
+
+<div class="viewcode-block" id="SBD.runWithCandidateSelection"><a class="viewcode-back" href="../../SBD.html#sbd.SBD.SBD.runWithCandidateSelection">[docs]</a>    <span class="k">def</span> <span class="nf">runWithCandidateSelection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidates_np</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to run sbd with candidate selection mode.</span>
+
+<span class="sd">        :param candidates_np: THis parameter must hold a valid numpy list including all pre-selected candidates.</span>
+<span class="sd">        :return: This method returns a numpy list with all detected shots in a video.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#printCustom(&quot;process shot detection ... &quot;, STDOUT_TYPE.INFO);</span>
+
+        <span class="c1"># initial pre-trained model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">PyTorchModel</span><span class="p">(</span><span class="n">model_arch</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">backbone_cnn</span><span class="p">)</span>
+
+        <span class="n">results_l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">shot_l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidates_np</span><span class="p">)):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">candidates_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">candidates_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+
+            <span class="c1">#print(start)</span>
+            <span class="c1">#print(end)</span>
+            <span class="n">results_per_range</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+                <span class="c1"># print(&quot;-------------------&quot;)</span>
+                <span class="c1"># print(&quot;process &quot; + str(i))</span>
+                <span class="n">idx_curr</span> <span class="o">=</span> <span class="n">j</span>
+                <span class="n">idx_prev</span> <span class="o">=</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span>
+
+                <span class="n">frm_prev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span><span class="o">.</span><span class="n">getFrame</span><span class="p">(</span><span class="n">idx_prev</span><span class="p">)</span>
+                <span class="n">frm_curr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span><span class="o">.</span><span class="n">getFrame</span><span class="p">(</span><span class="n">idx_curr</span><span class="p">)</span>
+
+                <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">frm_prev</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">frm_curr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="k">break</span>
+                <span class="c1">#print(idx_prev)</span>
+                <span class="c1">#print(idx_curr)</span>
+                <span class="c1">#print(frm_prev.shape)</span>
+                <span class="c1">#print(frm_curr.shape)</span>
+
+                <span class="n">frm_trans_prev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_proc_instance</span><span class="o">.</span><span class="n">applyTransformOnImg</span><span class="p">(</span><span class="n">frm_prev</span><span class="p">)</span>
+                <span class="n">frm_trans_curr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_proc_instance</span><span class="o">.</span><span class="n">applyTransformOnImg</span><span class="p">(</span><span class="n">frm_curr</span><span class="p">)</span>
+
+                <span class="c1"># print(&quot;process core part ... &quot;)</span>
+                <span class="n">feature_prev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">getFeatures</span><span class="p">(</span><span class="n">frm_trans_prev</span><span class="p">)</span>
+                <span class="n">feature_curr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">net</span><span class="o">.</span><span class="n">getFeatures</span><span class="p">(</span><span class="n">frm_trans_curr</span><span class="p">)</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateDistance</span><span class="p">(</span><span class="n">feature_prev</span><span class="p">,</span> <span class="n">feature_curr</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">save_raw_results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">results_per_range</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+                <span class="k">if</span><span class="p">(</span><span class="n">result</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">threshold</span><span class="p">):</span>
+                    <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;Abrupt Cut detected: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx_prev</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx_curr</span><span class="p">),</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+                    <span class="n">shot_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span><span class="o">.</span><span class="n">vidName</span><span class="p">,</span> <span class="p">(</span><span class="n">idx_prev</span><span class="p">,</span> <span class="n">idx_curr</span><span class="p">)])</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">save_raw_results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">results_l</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">results_per_range</span><span class="p">])</span>
+
+        <span class="c1"># save raw results to file</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">save_raw_results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;save raw results ... &quot;</span><span class="p">)</span>
+            <span class="n">results_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results_l</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exportRawResultsAsCsv_New</span><span class="p">(</span><span class="n">results_np</span><span class="p">)</span>
+
+        <span class="c1"># convert shot boundaries to shots</span>
+        <span class="n">shots_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shot_l</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">shots_np</span></div>
+
+<div class="viewcode-block" id="SBD.exportFinalResultsToCsv"><a class="viewcode-back" href="../../SBD.html#sbd.SBD.SBD.exportFinalResultsToCsv">[docs]</a>    <span class="k">def</span> <span class="nf">exportFinalResultsToCsv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shot_l</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to export the final results to a csv file (semicolon seperated).</span>
+<span class="sd">        :param shot_l: This parameter must hold a valid array list including the final results list.</span>
+<span class="sd">        :param name: This parameter represents the name of the csv list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;Export shot list to csv file ... &quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+        <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_final_results</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.csv&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>   <span class="c1"># final_shots_&quot;</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;shot_id;vid_name;start;end&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">shot_l</span><span class="p">:</span>
+            <span class="n">tmp_str</span> <span class="o">=</span> <span class="n">shot</span><span class="o">.</span><span class="n">convert2String</span>
+            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tmp_str</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SBD.exportRawResultsAsNumpy"><a class="viewcode-back" href="../../SBD.html#sbd.SBD.SBD.exportRawResultsAsNumpy">[docs]</a>    <span class="k">def</span> <span class="nf">exportRawResultsAsNumpy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_np</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to export the raw results to a numpy file.</span>
+
+<span class="sd">        :param results_np: This parameter must hold a valid numpy list including the raw results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_raw_results</span> <span class="o">+</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_prefix_raw_results</span> <span class="o">+</span>
+                  <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span><span class="o">.</span><span class="n">vidName</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_postfix_raw_results</span><span class="p">,</span>
+                <span class="n">results_np</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SBD.exportRawResultsAsCsv_New"><a class="viewcode-back" href="../../SBD.html#sbd.SBD.SBD.exportRawResultsAsCsv_New">[docs]</a>    <span class="k">def</span> <span class="nf">exportRawResultsAsCsv_New</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_np</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to export the raw results to a csv file.</span>
+
+<span class="sd">        :param results_np: This parameter must hold a valid numpy list including the raw results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># save raw results to file</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_raw_results</span> <span class="o">+</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_prefix_raw_results</span> <span class="o">+</span>
+                  <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span><span class="o">.</span><span class="n">vidName</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">path_postfix_raw_results</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_np</span><span class="p">)):</span>
+            <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">distances_l</span> <span class="o">=</span> <span class="n">results_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">tmp_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances_l</span><span class="p">)):</span>
+                <span class="n">tmp_str</span> <span class="o">=</span> <span class="n">tmp_str</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">distances_l</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span><span class="o">.</span><span class="n">vidName</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tmp_str</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># csv_writer.writerow(row);</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SBD.calculateDistance"><a class="viewcode-back" href="../../SBD.html#sbd.SBD.SBD.calculateDistance">[docs]</a>    <span class="k">def</span> <span class="nf">calculateDistance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method is used to calculate the distance between 2 feature vectors.</span>
+
+<span class="sd">        :param x: This parameter represents a feature vector (one-dimensional)</span>
+<span class="sd">        :param y: This parameter represents a feature vector (one-dimensional)</span>
+<span class="sd">        :return: This method returns the similarity score of a specified distance metric.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dst</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># initial pre-trained model</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">similarity_metric</span> <span class="o">==</span> <span class="s2">&quot;cosine&quot;</span><span class="p">):</span>
+            <span class="n">dst</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">cosine</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">similarity_metric</span> <span class="o">==</span> <span class="s2">&quot;euclidean&quot;</span><span class="p">):</span>
+            <span class="n">dst</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">euclidean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dst</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">printCustom</span><span class="p">(</span><span class="s2">&quot;No valid similarity metric selected!&quot;</span><span class="p">,</span> <span class="n">STDOUT_TYPE</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">dst</span></div>
+
+<div class="viewcode-block" id="SBD.convertShotBoundaries2Shots"><a class="viewcode-back" href="../../SBD.html#sbd.SBD.SBD.convertShotBoundaries2Shots">[docs]</a>    <span class="k">def</span> <span class="nf">convertShotBoundaries2Shots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shot_boundaries_np</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method converts a list with detected shot boundaries to the final shots.</span>
+
+<span class="sd">        :param shot_boundaries_np: This parameter must hold a numpy array with all detected shot boundaries.</span>
+<span class="sd">        :return: This method returns a numpy list with the final shots.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># convert results to shot instances</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shot_boundaries_np</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;no shots detected ... &quot;</span><span class="p">)</span>
+
+        <span class="n">shot_l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">vidname_curr</span> <span class="o">=</span> <span class="n">shot_boundaries_np</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">start_curr</span><span class="p">,</span> <span class="n">stop_curr</span> <span class="o">=</span> <span class="n">shot_boundaries_np</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">shot_start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">shot_end</span> <span class="o">=</span> <span class="n">start_curr</span>
+        <span class="n">shot</span> <span class="o">=</span> <span class="n">Shot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">vidname_curr</span><span class="p">,</span> <span class="n">shot_start</span><span class="p">,</span> <span class="n">shot_end</span><span class="p">)</span>
+        <span class="n">shot_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">shot_boundaries_np</span><span class="p">)):</span>
+            <span class="c1">#print(i)</span>
+            <span class="n">start_prev</span><span class="p">,</span> <span class="n">stop_prev</span> <span class="o">=</span> <span class="n">shot_boundaries_np</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">start_curr</span><span class="p">,</span> <span class="n">stop_curr</span> <span class="o">=</span> <span class="n">shot_boundaries_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">vidname_curr</span> <span class="o">=</span> <span class="n">shot_boundaries_np</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">shot_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stop_prev</span><span class="p">)</span>
+            <span class="n">shot_end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">start_curr</span><span class="p">)</span>
+            <span class="n">shot</span> <span class="o">=</span> <span class="n">Shot</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">vidname_curr</span><span class="p">,</span> <span class="n">shot_start</span><span class="p">,</span> <span class="n">shot_end</span><span class="p">)</span>
+            <span class="n">shot_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
+
+        <span class="n">vidname_curr</span> <span class="o">=</span> <span class="n">shot_boundaries_np</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">start_curr</span><span class="p">,</span> <span class="n">stop_curr</span> <span class="o">=</span> <span class="n">shot_boundaries_np</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">shot_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">stop_curr</span><span class="p">)</span>
+        <span class="n">shot_end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vid_instance</span><span class="o">.</span><span class="n">number_of_frames</span><span class="p">)</span>
+        <span class="n">shot</span> <span class="o">=</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shot_boundaries_np</span><span class="p">),</span> <span class="n">vidname_curr</span><span class="p">,</span> <span class="n">shot_start</span><span class="p">,</span> <span class="n">shot_end</span><span class="p">)</span>
+        <span class="n">shot_l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_instance</span><span class="o">.</span><span class="n">debug_flag</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># print shot infos</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">shot_l</span><span class="p">)):</span>
+                <span class="n">shot_l</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">printShotInfo</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">shot_l</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">VHH Plugin Package: Shot Boundary Detection (vhh_sbd) 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Daniel Helm.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
+    </div>
+  </body>
+</html>
