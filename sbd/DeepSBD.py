@@ -17,8 +17,18 @@ except ImportError:
 from sbd.Configuration import Configuration
 from sbd.PreProcessing import PreProcessing
 
+
 class deepSBD(nn.Module):
+    """
+    This class is represents the pytorch model architecture used for sbd candidate selection.
+    It detects frames ranges of about 16 frames which includes an abrupt cut. The loaded model
+    is pre-trained on the deepsbd dataset.
+    """
+
     def __init__(self):
+        """
+        Constructor.
+        """
         super(deepSBD, self).__init__()
         self.conv1 = nn.Conv3d(3, 96, kernel_size=3, stride=(1, 2, 2), padding=(0, 0, 0), bias=True)
         self.relu1 = nn.ReLU(inplace=True)
@@ -40,6 +50,12 @@ class deepSBD(nn.Module):
         self.fc8 = nn.Linear(2048, 3)
     
     def forward(self, x):
+        """
+        This method is needed to calculate the foward pass of the model.
+
+        :param x: this parameter must be a valid pytorch tensor.
+        :return:  This method returns a pytorch tensor with the specified shape.
+        """
         x = self.conv1(x)
         x = self.relu1(x)
         x = self.pool1(x)
@@ -60,16 +76,34 @@ class deepSBD(nn.Module):
         x = self.fc8(x)
         return x
 
-class CandidateSelection:
+
+class CandidateSelection(object):
+    """
+    This class is used for sbd candidate selection. It detects frames ranges of about 16 frames which includes an
+    abrupt cut. The loaded model is pre-trained on the deepsbd dataset.
+    """
+
     def __init__(self, config_instance: Configuration):
-        print("create instance of candidate selection module ... ");
+        """
+        Constructor.
+
+        :param config_instance: object instance of type Configuration
+        """
+        print("create instance of candidate selection module ... ")
         self.config_instance = config_instance;
-        self.preprocessing = PreProcessing(self.config_instance);
+        self.preprocessing = PreProcessing(self.config_instance)
 
     def run(self, video_path):
+        """
+        This method is used to run the candidate selection process.
+
+        :param video_path: This parameter must hold a valid path to a video file.
+        :return: This method returns a numpy array with a list of all detected frames ranges.
+        """
+
         model_path = self.config_instance.pretrained_model
-        temporal_length = 16;
-        batch_size = 32;
+        temporal_length = 16
+        batch_size = 32
 
         num_classes = 2
         self.model = deepSBD()  # deepsbd class
@@ -87,7 +121,7 @@ class CandidateSelection:
 
         self.spatial_transform = Compose([Scale((128, 128)),
                                           ToTensor(1),
-                                          Normalize(self.get_mean(1), [1, 1, 1])]);
+                                          Normalize(self.get_mean(1), [1, 1, 1])])
         self.model.eval()
         videocap = cv2.VideoCapture(video_path)
         status = True
@@ -138,8 +172,8 @@ class CandidateSelection:
                 i += 1
 
         # prepare results
-        abrupt_l = [];
-        graduals_l = [];
+        abrupt_l = []
+        graduals_l = []
         for begin, end, label in final_res:
             if label == 2:
                 abrupt_l.append((begin, end))
@@ -153,9 +187,15 @@ class CandidateSelection:
         final_res_np = np.array(final_res)
         abrupt_np = np.array(abrupt_l).astype('int')
         graduals_np = np.array(graduals_l)
-        return abrupt_np;
+        return abrupt_np
 
     def get_mean(self, norm_value=255):
+        """
+        Helper method to calculate the normalized mean values.
+
+        :param norm_value: Base for normalization (default: 255).
+        :return: array with the normalized mean values for each color channel (RGB)
+        """
         return [114.7748 / norm_value, 107.7354 / norm_value, 99.4750 / norm_value]
 
     def get_test_spatial_transform(self, opt):

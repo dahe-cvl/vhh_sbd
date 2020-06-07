@@ -6,3 +6,7 @@ matplotlib
 scipy
 PyYAML
 numpy
+Sphinx
+sphinxcontrib-bibtex
+sphinxcontrib-autoyaml
+

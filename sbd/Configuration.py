@@ -2,8 +2,30 @@ from sbd.utils import *
 import yaml
 
 
-class Configuration:
+class Configuration(object):
+    """
+    This class is needed to read the configuration parameters specified in the configuration.yaml file.
+    The instance of the class is holding all parameters during runtime.
+
+    .. note::
+       e.g. ./config/config_vhh_test.yaml
+
+        the yaml file is separated in multiple sections
+        config['Development']
+        config['PreProcessing']
+        config['SbdCore']
+        config['Evaluation']
+
+        whereas each section should hold related and meaningful parameters.
+    """
+
     def __init__(self, config_file: str):
+        """
+        Constructor
+
+        :param config_file: [required] path to configuration file (e.g. PATH_TO/config.yaml)
+                                       must be with extension ".yaml"
+        """
         printCustom("create instance of configuration ... ", STDOUT_TYPE.INFO)
 
         self.config_file = config_file
@@ -44,6 +66,10 @@ class Configuration:
         self.path_gt_data = None
 
     def loadConfig(self):
+        """
+        Method to load configurables from the specified configuration file
+        """
+
         fp = open(self.config_file, 'r')
         config = yaml.load(fp, Loader=yaml.BaseLoader)
 

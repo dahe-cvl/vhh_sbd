@@ -25,7 +25,7 @@ SbdCore:
   PATH_VIDEOS: "/data/share/maxrecall_vhh_mmsi/videos/downloaded/"
   THRESHOLD_MODE: 'adaptive'    # adaptive OR fixed
   THRESHOLD: 0.8                 # value [0-1]
-  ALPHA: 8.0                     # value > 1
+  ALPHA: 2.0                     # value > 1
   WINDOW_SIZE: 100               # only for adaptive mode
   BACKBONE_CNN: "squeezenet"    # vgg16 OR squeezenet
   SIMILARITY_METRIC: "cosine"
