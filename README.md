@@ -4,7 +4,7 @@ This package includes all methods to classify a given shot/or image sequence in 
 
 ## Package Description
 
-PDF format: [vhh_sbd_pdf](https://github.com/dahe-cvl/vhh_sbd/blob/master/ApiSphinxDocumentation/build/latex/vhhpluginpackagecameramovementsclassificationvhh_sbd.pdf)
+PDF format: [vhh_sbd_pdf](https://github.com/dahe-cvl/vhh_sbd/blob/master/ApiSphinxDocumentation/build/latex/vhhpluginpackageshotboundarydetectionvhh_sbd.pdf)
     
 HTML format (only usable if repository is available in local storage): [vhh_sbd_html](https://github.com/dahe-cvl/vhh_sbd/blob/master/ApiSphinxDocumentation/build/html/index.html)
     
