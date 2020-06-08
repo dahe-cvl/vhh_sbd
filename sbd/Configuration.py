@@ -75,10 +75,8 @@ class Configuration(object):
 
         developer_config = config['Development']
         pre_processing_config = config['PreProcessing']
-        post_processing_config = config['PostProcessing']
         sbd_core_config = config['SbdCore']
         candidate_selection_config = config['CandidateSelection']
-        visualization_config = config['Visualization']
         evaluation_config = config['Evaluation']
 
         # developer_config section

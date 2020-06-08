@@ -13,14 +13,14 @@ The following list give an overview of the folder structure of this python repos
    * **ApiSphinxDocumentation/**: includes all files to generate the documentation as well as the created documentations
                                   (html, pdf)
    * **config/**: this folder includes the required configuration file
-   * **stc/**: this folder represents the shot-type-classification module and builds the main part of this repository
+   * **sbd/**: this folder represents the shot-type-classification module and builds the main part of this repository
    * **Demo/**: this folder includes a demo script to demonstrate how the package have to be used in customized applications
    * **Develop/**: includes scripts to evaluate the implemented approach as well as several helper scripts used during
                    development stage. Furthermore, a script is included to create the package documentation (pdf, html).
    * **README.md**: this file gives a brief description of this repository (e.g. link to this documentation)
    * **requirements.txt**: this file holds all python lib dependencies and is needed to install the package in your own
                            virtual environment
-   * **setup.py**: this script is needed to install the stc package in your own virtual environment
+   * **setup.py**: this script is needed to install the sbd package in your own virtual environment
 
 Setup  instructions
 ===================
@@ -61,10 +61,15 @@ Install the sbd package and all dependencies:
    Currently there is an issue in the *setup.py* script. Therefore the pytorch libraries have to be installed manually by running the following command:
    *pip install torch==1.5.0+cu101 torchvision==0.6.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html*
 
+Parameter Description
+=====================
+
+.. autoyaml:: ../config/config_vhh_test.yaml
+
 API Description
 ===============
 
-This section gives an overview of all classes and modules in *stc* as well as an code description.
+This section gives an overview of all classes and modules in *sbd* as well as an code description.
 
 .. toctree::
    :maxdepth: 4
