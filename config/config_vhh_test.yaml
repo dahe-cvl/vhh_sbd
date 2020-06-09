@@ -77,7 +77,7 @@ SbdCore:
 CandidateSelection:
   ###
   # This parameter is used to specify the path to the pre-trained model.
-  PATH_PRETRAINED_MODEL: "/caa/Homes01/dhelm/working/pycharm_sbd_clipshot/ClipShots_basline/pretrained/Alexnet-final.pth"
+  PATH_PRETRAINED_MODEL: "/data/share/maxrecall_vhh_mmsi/videos/pre_trained_models/sbd/candidate_selection_model/pretrained/Alexnet-final.pth"
 
 Evaluation:
   ###
