@@ -412,12 +412,13 @@ class SBD(object):
         :param shot_boundaries_np: This parameter must hold a numpy array with all detected shot boundaries.
         :return: This method returns a numpy list with the final shots.
         """
-        # convert results to shot instances
+        shot_l = []
 
+        # convert results to shot instances
         if(len(shot_boundaries_np) == 0):
             print("no shots detected ... ")
+            return shot_l
 
-        shot_l = []
         vidname_curr = shot_boundaries_np[0][0]
         start_curr, stop_curr = shot_boundaries_np[0][1]
         shot_start = 0
