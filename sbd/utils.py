@@ -24,6 +24,8 @@ def printCustom(msg: str, type: int):
         exit()
 
 
+
+
 def getCommandLineParams():
     """
     This function is used to read commandline parameters (e.g. just used in development stage)
