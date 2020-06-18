@@ -346,7 +346,7 @@ class SBD(object):
         fp = open(self.config_instance.path_final_results + "/" + str(name) + ".csv", 'w')   # final_shots_"
         fp.write("shot_id;vid_name;start;end" + "\n")
         for shot in shot_l:
-            tmp_str = shot.convert2String
+            tmp_str = shot.convert2String()
             fp.write(tmp_str + "\n")
         fp.close()
 
