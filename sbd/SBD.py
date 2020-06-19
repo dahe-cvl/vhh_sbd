@@ -133,7 +133,6 @@ class SBD(object):
             printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
             shot_boundaries_np = self.runWithoutCandidateSelection(self.src_path, vid_name)
 
-
         # convert shot boundaries to final shots
         final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np)
 
@@ -263,6 +262,10 @@ class SBD(object):
                 self.exportRawResultsAsCsv_New(results_np)
             elif (self.config_instance.path_postfix_raw_results == 'npy'):
                 self.exportRawResultsAsNumpy(results_np)
+
+        if (len(shot_l) == 0):
+            print("no cuts detected ... ")
+            shot_l.append([self.vid_instance.vidName, (1, number_of_frames)])
 
         # convert shot boundaries to shots
         shots_np = np.array(shot_l)
