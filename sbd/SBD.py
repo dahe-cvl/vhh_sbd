@@ -421,18 +421,22 @@ class SBD(object):
 
         vidname_curr = shot_boundaries_np[0][0]
         start_curr, stop_curr = shot_boundaries_np[0][1]
+
+        print("shot boundaries list: ")
+        print(shot_boundaries_np)
+
+        if (start_curr == -1 and stop_curr == -1):
+            print("no shots detected ... ")
+            shot = Shot(len(shot_boundaries_np), vidname_curr, 1, self.vid_instance.number_of_frames)
+            shot_l.append(shot)
+            return shot_l
+
         shot_start = 0
         shot_end = start_curr
         shot = Shot(1, vidname_curr, shot_start, shot_end)
         shot_l.append(shot)
 
         for i in range(1, len(shot_boundaries_np)):
-            if (start_curr == -1 and stop_curr == -1):
-                print("no shots detected ... ")
-                shot = Shot(len(shot_boundaries_np), vidname_curr, 1, self.vid_instance.number_of_frames)
-                shot_l.append(shot)
-                return shot_l
-
             #print(i)
             start_prev, stop_prev = shot_boundaries_np[i-1][1]
             start_curr, stop_curr = shot_boundaries_np[i][1]
