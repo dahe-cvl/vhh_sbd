@@ -265,7 +265,7 @@ class SBD(object):
 
         if (len(shot_l) == 0):
             print("no cuts detected ... ")
-            shot_l.append([self.vid_instance.vidName, (1, number_of_frames)])
+            shot_l.append([self.vid_instance.vidName, (-1, -1)])
 
         # convert shot boundaries to shots
         shots_np = np.array(shot_l)
@@ -415,12 +415,9 @@ class SBD(object):
         :param shot_boundaries_np: This parameter must hold a numpy array with all detected shot boundaries.
         :return: This method returns a numpy list with the final shots.
         """
-        shot_l = []
-
         # convert results to shot instances
-        if(len(shot_boundaries_np) == 0):
-            print("no shots detected ... ")
-            return shot_l
+
+        shot_l = []
 
         vidname_curr = shot_boundaries_np[0][0]
         start_curr, stop_curr = shot_boundaries_np[0][1]
@@ -430,6 +427,12 @@ class SBD(object):
         shot_l.append(shot)
 
         for i in range(1, len(shot_boundaries_np)):
+            if (start_curr == -1 and stop_curr == -1):
+                print("no shots detected ... ")
+                shot = Shot(len(shot_boundaries_np), vidname_curr, 1, self.vid_instance.number_of_frames)
+                shot_l.append(shot)
+                return shot_l
+
             #print(i)
             start_prev, stop_prev = shot_boundaries_np[i-1][1]
             start_curr, stop_curr = shot_boundaries_np[i][1]
