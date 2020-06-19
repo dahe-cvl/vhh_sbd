@@ -427,7 +427,7 @@ class SBD(object):
 
         if (start_curr == -1 and stop_curr == -1):
             print("no shots detected ... ")
-            shot = Shot(len(shot_boundaries_np), vidname_curr, 1, self.vid_instance.number_of_frames)
+            shot = Shot(len(shot_boundaries_np), vidname_curr, 1, int(self.vid_instance.number_of_frames))
             shot_l.append(shot)
             return shot_l
 
