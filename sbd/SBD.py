@@ -133,7 +133,6 @@ class SBD(object):
             printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
             shot_boundaries_np = self.runWithoutCandidateSelection(self.src_path, vid_name)
 
-
         # convert shot boundaries to final shots
         final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np)
 
@@ -264,6 +263,10 @@ class SBD(object):
             elif (self.config_instance.path_postfix_raw_results == 'npy'):
                 self.exportRawResultsAsNumpy(results_np)
 
+        if (len(shot_l) == 0):
+            print("no cuts detected ... ")
+            shot_l.append([self.vid_instance.vidName, (-1, -1)])
+
         # convert shot boundaries to shots
         shots_np = np.array(shot_l)
         print(shots_np)
@@ -346,7 +349,7 @@ class SBD(object):
         fp = open(self.config_instance.path_final_results + "/" + str(name) + ".csv", 'w')   # final_shots_"
         fp.write("shot_id;vid_name;start;end" + "\n")
         for shot in shot_l:
-            tmp_str = shot.convert2String
+            tmp_str = shot.convert2String()
             fp.write(tmp_str + "\n")
         fp.close()
 
@@ -412,15 +415,22 @@ class SBD(object):
         :param shot_boundaries_np: This parameter must hold a numpy array with all detected shot boundaries.
         :return: This method returns a numpy list with the final shots.
         """
-        shot_l = []
-
         # convert results to shot instances
-        if(len(shot_boundaries_np) == 0):
-            print("no shots detected ... ")
-            return shot_l
+
+        shot_l = []
 
         vidname_curr = shot_boundaries_np[0][0]
         start_curr, stop_curr = shot_boundaries_np[0][1]
+
+        print("shot boundaries list: ")
+        print(shot_boundaries_np)
+
+        if (start_curr == -1 and stop_curr == -1):
+            print("no shots detected ... ")
+            shot = Shot(len(shot_boundaries_np), vidname_curr, 1, int(self.vid_instance.number_of_frames))
+            shot_l.append(shot)
+            return shot_l
+
         shot_start = 0
         shot_end = start_curr
         shot = Shot(1, vidname_curr, shot_start, shot_end)
