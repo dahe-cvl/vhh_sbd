@@ -175,7 +175,10 @@ class SBD(object):
             if (ret == True):
                 frame = self.pre_proc_instance.applyTransformOnImg(frame)
                 frame_l.append(frame)
-                #cv2.imwrite(self.config_instance.path_eval_results + vid_name + "_" + str(cnt) + ".png", frame)
+
+                if (self.config_instance.debug_flag == 1):
+                    if(cnt <= 500):
+                        cv2.imwrite(self.config_instance.path_eval_results + vid_name + "_" + str(cnt) + ".png", frame)
 
             else:
                 break
