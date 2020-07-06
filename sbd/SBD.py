@@ -187,6 +187,7 @@ class SBD(object):
 
         # calculate features and similarities
         number_of_frames = len(frame_np)
+
         #number_of_frames = 1000
         results_l = []
         shot_l = []
@@ -254,7 +255,6 @@ class SBD(object):
                     printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
                     shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
 
-
         # save raw results to file
         if (int(self.config_instance.save_raw_results) == 1):
             print("save raw results ... ")
@@ -272,7 +272,7 @@ class SBD(object):
 
         # convert shot boundaries to shots
         shots_np = np.array(shot_l)
-        print(shots_np)
+
         return shots_np
 
     def runWithCandidateSelection(self, candidates_np):
@@ -453,7 +453,7 @@ class SBD(object):
         vidname_curr = shot_boundaries_np[-1][0]
         start_curr, stop_curr = shot_boundaries_np[-1][1]
         shot_start = int(stop_curr)
-        shot_end = int(self.vid_instance.number_of_frames)
+        shot_end = int(self.vid_instance.number_of_frames) - 1
         shot = Shot(len(shot_boundaries_np), vidname_curr, shot_start, shot_end)
         shot_l.append(shot)
 
