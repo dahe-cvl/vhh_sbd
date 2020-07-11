@@ -136,9 +136,24 @@ class SBD(object):
         # convert shot boundaries to final shots
         final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np)
 
+        # filter all shots smaller than threshold
+        MIN_FRAME_NUMBERS_PER_SHOT = 10
+
+        filtered_final_shot_l = []
+        for i, shot in enumerate(final_shot_l):
+            if(abs(shot.end_pos - shot.start_pos) >= MIN_FRAME_NUMBERS_PER_SHOT):
+                filtered_final_shot_l.append(shot)
+        print(len(filtered_final_shot_l))
+
+        for i, shot in enumerate(filtered_final_shot_l):
+            print(i)
+            print(shot)
+            shot.printShotInfo()
+
         # export final results
         if (self.config_instance.save_final_results == 1):
-            self.exportFinalResultsToCsv(final_shot_l, str(max_recall_id))
+            self.exportFinalResultsToCsv(filtered_final_shot_l, str(max_recall_id))
+        exit()
 
         return final_shot_l
 
