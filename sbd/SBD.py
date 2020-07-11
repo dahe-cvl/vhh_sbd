@@ -153,7 +153,6 @@ class SBD(object):
         # export final results
         if (self.config_instance.save_final_results == 1):
             self.exportFinalResultsToCsv(filtered_final_shot_l, str(max_recall_id))
-        exit()
 
         return final_shot_l
 
