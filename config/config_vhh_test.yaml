@@ -27,10 +27,9 @@ SbdCore:
   ###
   # This parameter is used to save raw results (e.g. debug visualizations).
   SAVE_RAW_RESULTS: 1       # 1 ... yes 0 ... no
-  PATH_RAW_RESULTS: "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd//"
   ###
   # This parameter is used to specify the path for saving the raw results.
-  PATH_RAW_RESULTS: "/data/share/maxrecall_vhh_mmsi/videos/results/sbd/raw_results/"
+  PATH_RAW_RESULTS: "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd//"
   ###
   # This parameter is used to specify the prefix for the results file.
   PREFIX_RAW_RESULTS: "results_raw_"
@@ -41,10 +40,9 @@ SbdCore:
   ###
   # This parameter is used to save final results (e.g. csv list).
   SAVE_FINAL_RESULTS: 1     # 1 ... yes 0 ... no
-  PATH_FINAL_RESULTS: "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/final_results/"
   ###
   # This parameter is used to specify the path for saving the final results.
-  PATH_FINAL_RESULTS: "/data/share/maxrecall_vhh_mmsi/videos/results/sbd/final_results/"
+  PATH_FINAL_RESULTS: "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/final_results/"
   ###
   # This parameter is used to specify the prefix for the results file.
   PREFIX_FINAL_RESULTS: "results_"
@@ -52,14 +50,12 @@ SbdCore:
   # This parameter is used to specify the postfix for the results file.
   POSTFIX_FINAL_RESULTS: "csv"
 
-  PATH_VIDEOS: "/data/share/maxrecall_vhh_mmsi/develop/videos/downloaded/"
-  THRESHOLD_MODE: 'fixed'    # adaptive OR fixed
   ###
   # This parameter is used to specify the path to the videos.
-  PATH_VIDEOS: "/data/share/maxrecall_vhh_mmsi/videos/downloaded/"
+  PATH_VIDEOS: "/data/share/maxrecall_vhh_mmsi/develop/videos/downloaded/"
   ###
   # This parameter is used to specify the threshold mode (adaptive OR fixed).
-  THRESHOLD_MODE: 'adaptive'    # adaptive OR fixed
+  THRESHOLD_MODE: 'fixed'    # adaptive OR fixed
   ###
   # This parameter is used to specify the threshold (only in fixed threshold mode - [0-1]).
   THRESHOLD: 0.8                 # value [0-1]
@@ -82,23 +78,15 @@ CandidateSelection:
   PATH_PRETRAINED_MODEL: "/data/share/maxrecall_vhh_mmsi/videos/pre_trained_models/sbd/candidate_selection_model/pretrained/Alexnet-final.pth"
 
 Evaluation:
-  SAVE_EVAL_RESULTS: 1
-  PATH_RAW_RESULTS: "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/raw_results/"
-  PATH_EVAL_RESULTS: "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/develop/"
-  #PATH_GT_ANNOTATIONS: "/caa/Projects02/vhh/private/database_nobackup/VHH_datasets/annotations/ShotBoundaryDetection/imediacities/sbd_imc_annotations_20191231.csv"
-  PATH_GT_ANNOTATIONS: "/data/share/vhh_mmsi_test_db/annotations/sbd/final_results/all_annotations_prepared.csv"
-
-
-
   ###
   # This parameter is used to save evaluation results (e.g. visualizations, ... ).
-  SAVE_EVAL_RESULTS: 0
+  SAVE_EVAL_RESULTS: 1
   ###
   # This parameter is used the raw results path.
-  PATH_RAW_RESULTS: "/data/share/maxrecall_vhh_mmsi/videos/results/cmc/raw_results/"
+  PATH_RAW_RESULTS: "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/raw_results/"
   ###
   # This parameter is used to specify the path to store the evaluation results path.
-  PATH_EVAL_RESULTS: "/data/share/maxrecall_vhh_mmsi/videos/results/cmc/develop/"
+  PATH_EVAL_RESULTS: "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/develop/"
   ###
   # This parameter is used to groundtruth annotations used for evaluation.
-  PATH_GT_ANNOTATIONS: "/caa/Projects02/vhh/private/database_nobackup/VHH_datasets/annotations/ShotBoundaryDetection/imediacities/sbd_imc_annotations_20191231.csv"
+  PATH_GT_ANNOTATIONS: "/data/share/vhh_mmsi_test_db/annotations/sbd/final_results/all_annotations_prepared.csv"

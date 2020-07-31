@@ -43,3 +43,4 @@ def getCommandLineParams():
     params = sys.argv
     print(params)
     return params
+
