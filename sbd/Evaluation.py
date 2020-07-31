@@ -150,8 +150,8 @@ class Evaluation(object):
 
         #print(vid_name)
         #vid_name = result_np[0][0];
-        video_obj = Video();
-        video_obj.load(src_path + "/" + str(vid_name) + ".mp4")
+        video_obj = Video()
+        video_obj.load(src_path + "/" + str(vid_name) + ".m4v")
 
         # load gt
         fp = open(gt_data, 'r')
@@ -159,7 +159,7 @@ class Evaluation(object):
         fp.close()
         #print(lines)
 
-        gt_l = [];
+        gt_l = []
         for i in range(1, len(lines)):
             line = lines[i].replace('\n', '')
             line = line.replace('[', '')
@@ -173,14 +173,10 @@ class Evaluation(object):
             vidname = line_split[1]
             start = int(line_split[2])
             stop = int(line_split[3])
-            diff = int(line_split[4])
-            sbd_type = line_split[5]
-
-            if(sbd_type == "HARDCUT"):
-                gt_l.append([vidname, (start, stop)])
+            gt_l.append([vidname.split('.')[0], (start, stop)])
 
         gt_np = np.array(gt_l)
-        #print(gt_np)
+        #print(gt_np[:10])
 
         '''
         # load pred
@@ -199,15 +195,19 @@ class Evaluation(object):
             pred_l.append([vidname, (start, stop)])
 
         pred_np = np.array(pred_l)
-        #print(pred_np)
+        #print(pred_np[:10])
+
         print(vid_name)
         idx = np.where(vid_name == pred_np)[0]
         sb_pred_np = pred_np[idx]
         #print("---------")
         #print(sb_pred_np)
 
+        #exit()
+
+        #print(gt_np[:10])
         idx = np.where(vid_name == gt_np)[0]
-        sb_gt_np = gt_np[idx];
+        sb_gt_np = gt_np[idx]
         #print("---------")
         #print(sb_gt_np)
 
@@ -333,6 +333,7 @@ class Evaluation(object):
 
         :return: This methods returns a numpy array including a list of the calculated metrics (precision, recall, ...).
         """
+        #print(self.config_instance.path_postfix_raw_results)
         if (self.config_instance.path_postfix_raw_results == 'csv'):
             vid_name_list = os.listdir(str(self.config_instance.path_raw_results_eval))
             vid_name_list = [i for i in vid_name_list if i.endswith('.csv')]
@@ -345,13 +346,20 @@ class Evaluation(object):
         fp_video_based = None
 
         if(self.config_instance.threshold_mode == 'adaptive'):
-            thresholds_l = [1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.55, 3.6, 3.65, 3.7, 3.75, 4.0, 4.5, 5.0, 5.5, 6.0]
+            thresholds_l = [1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0,
+                            3.1, 3.2, 3.3, 3.4, 3.5, 3.55, 3.6, 3.65, 3.7, 3.75, 4.0, 4.5, 5.0, 5.5, 6.0,
+                            7.0, 7.5, 8.5, 9.0, 9.5, 10.5, 11.0, 11.5, 12.0, 12.5, 13.0, 13.5, 14.0, 14.5,
+                            15.0, 15.5, 16.0
+                            ]
         elif(self.config_instance.threshold_mode == 'fixed'):
             thresholds_l = [1.0, 0.95, 0.90, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55,
                             0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
+            #thresholds_l = [0.80]
         else:
             thresholds_l = []
 
+        #print(thresholds_l)
+        #exit()
         for t in thresholds_l:
         #for s in range(0, 1000):
             tp_sum = 0

@@ -2,8 +2,12 @@ import numpy as np
 
 print("convert annoatation list to usable gt data ...")
 
+src_path = "/data/share/vhh_mmsi_test_db/annotations/sbd/final_results/all_annotations.csv"
+dst_path = "/data/share/vhh_mmsi_test_db/annotations/sbd/final_results/all_annotations_prepared.csv"
+
+
 # read csv file
-fp = open("imediacities_shot_annotations_20190805_prepared.csv", 'r')
+fp = open(src_path, 'r')
 lines = fp.readlines()
 fp.close()
 
@@ -53,7 +57,7 @@ sbd_entries_np = np.array(sbd_entries)
 
 
 print("write to csv file ... ")
-fp = open("imc_sbd.csv", 'w')
+fp = open(dst_path, 'w')
 for i in range(0, len(sbd_entries_np)):
     entry_str = sbd_entries_np[i][0] + ";" + sbd_entries_np[i][1] + ";" + sbd_entries_np[i][2] + ";" + sbd_entries_np[i][3] + ";" + sbd_entries_np[i][4] + ";" + sbd_entries_np[i][5]
     fp.write(entry_str + '\n')

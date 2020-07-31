@@ -133,9 +133,10 @@ class SBD(object):
             printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
             shot_boundaries_np = self.runWithoutCandidateSelection(self.src_path, vid_name)
 
-
         # convert shot boundaries to final shots
-        final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np)
+        final_shot_l = []
+        if (len(shot_boundaries_np) > 0):
+            final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np)
 
         # export final results
         if (self.config_instance.save_final_results == 1):
@@ -346,7 +347,24 @@ class SBD(object):
         fp = open(self.config_instance.path_final_results + "/" + str(name) + ".csv", 'w')   # final_shots_"
         fp.write("shot_id;vid_name;start;end" + "\n")
         for shot in shot_l:
-            tmp_str = shot.convert2String
+            tmp_str = shot.convert2String()
+            fp.write(tmp_str + "\n")
+        fp.close()
+
+    def exportShotBoundariesResultsToCsv(self, shot_boundaries_np: np.ndarray, name: str):
+        """
+        This method is used to export the final results to a csv file (semicolon seperated).
+        :param shot_l: This parameter must hold a valid array list including the final results list.
+        :param name: This parameter represents the name of the csv list.
+        """
+        printCustom("Export shot list to csv file ... ", STDOUT_TYPE.INFO)
+
+        fp = open("/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/" + "/" + str(name) + "_sbd.csv", 'w')  # final_shots_"
+        fp.write("shot_id;vid_name;start;end" + "\n")
+        for i in range(0, len(shot_boundaries_np)):
+            video_name = shot_boundaries_np[i][0]
+            start, end = shot_boundaries_np[i][1]
+            tmp_str = str(video_name) + ";" + str(start) + ";" + str(end)
             fp.write(tmp_str + "\n")
         fp.close()
 
