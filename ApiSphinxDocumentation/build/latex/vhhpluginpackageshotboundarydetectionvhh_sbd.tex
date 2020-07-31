@@ -72,7 +72,7 @@
 
 
 \title{VHH Plugin Package: Shot Boundary Detection (vhh\_sbd)}
-\date{Jun 07, 2020}
+\date{Jun 08, 2020}
 \release{1.0.0}
 \author{Daniel Helm}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -102,7 +102,7 @@ The following list give an overview of the folder structure of this python repos
 \sphinxstylestrong{config/}: this folder includes the required configuration file
 
 \item {} 
-\sphinxstylestrong{stc/}: this folder represents the shot\sphinxhyphen{}type\sphinxhyphen{}classification module and builds the main part of this repository
+\sphinxstylestrong{sbd/}: this folder represents the shot\sphinxhyphen{}type\sphinxhyphen{}classification module and builds the main part of this repository
 
 \item {} 
 \sphinxstylestrong{Demo/}: this folder includes a demo script to demonstrate how the package have to be used in customized applications
@@ -123,7 +123,7 @@ virtual environment
 \end{description}
 
 \item {} 
-\sphinxstylestrong{setup.py}: this script is needed to install the stc package in your own virtual environment
+\sphinxstylestrong{setup.py}: this script is needed to install the sbd package in your own virtual environment
 
 \end{itemize}
 
@@ -190,9 +190,147 @@ Currently there is an issue in the \sphinxstyleemphasis{setup.py} script. Theref
 \end{sphinxadmonition}
 
 
+\chapter{Parameter Description}
+\label{\detokenize{index:parameter-description}}
+DEBUG\_FLAG
+This parameter is used to activate or deactivate the debug mode.
+
+
+
+RESIZE\_DIM
+This flag is used to to specify the resize dimension. (only usable if DOWNSCALE\_FLAG is active).
+
+
+
+CONVERT2GRAY
+This flag is used to convert a input frame into a grayscale frame (0… deactivate, 1 … activate).
+
+
+
+CROP
+This flag is used to center crop a input frame (0… deactivate, 1 … activate).
+
+
+
+DOWNSCALE
+This flag is used to scale a input frame into the specified dimension (0… deactivate, 1 … activate).
+
+
+
+HISTOGRAM\_EQU
+This parameter is used to to specify a valid pre\sphinxhyphen{}processing method (clahe” or “classic” or “none).
+
+
+
+CANDIDATE\_SELECTION
+This flag is used to to enable or disable the candidate selection mode.
+
+
+
+SAVE\_RAW\_RESULTS
+This parameter is used to save raw results (e.g. debug visualizations).
+
+
+
+PATH\_RAW\_RESULTS
+This parameter is used to specify the path for saving the raw results.
+
+
+
+PREFIX\_RAW\_RESULTS
+This parameter is used to specify the prefix for the results file.
+
+
+
+POSTFIX\_RAW\_RESULTS
+This parameter is used to specify the postfix for the results file.
+
+
+
+SAVE\_FINAL\_RESULTS
+This parameter is used to save final results (e.g. csv list).
+
+
+
+PATH\_FINAL\_RESULTS
+This parameter is used to specify the path for saving the final results.
+
+
+
+PREFIX\_FINAL\_RESULTS
+This parameter is used to specify the prefix for the results file.
+
+
+
+POSTFIX\_FINAL\_RESULTS
+This parameter is used to specify the postfix for the results file.
+
+
+
+PATH\_VIDEOS
+This parameter is used to specify the path to the videos.
+
+
+
+THRESHOLD\_MODE
+This parameter is used to specify the threshold mode (adaptive OR fixed).
+
+
+
+THRESHOLD
+This parameter is used to specify the threshold (only in fixed threshold mode \sphinxhyphen{} {[}0\sphinxhyphen{}1{]}).
+
+
+
+ALPHA
+This parameter is used to specify the adaptive threshold.
+
+
+
+WINDOW\_SIZE
+This parameter is used to specify the window size (frames history window \sphinxhyphen{} only for adaptive mode).
+
+
+
+BACKBONE\_CNN
+This parameter is used to specify the backbone cnn model ( vgg16 OR squeezenet).
+
+
+
+SIMILARITY\_METRIC
+This parameter is used to specify the similarity metric (cosine OR euclidean).
+
+
+
+PATH\_PRETRAINED\_MODEL
+This parameter is used to specify the path to the pre\sphinxhyphen{}trained model.
+
+
+
+SAVE\_EVAL\_RESULTS
+This parameter is used to save evaluation results (e.g. visualizations, … ).
+
+
+
+PATH\_RAW\_RESULTS
+This parameter is used the raw results path.
+
+
+
+PATH\_EVAL\_RESULTS
+This parameter is used to specify the path to store the evaluation results path.
+
+
+
+PATH\_GT\_ANNOTATIONS
+This parameter is used to groundtruth annotations used for evaluation.
+
+
+
+
 \chapter{API Description}
 \label{\detokenize{index:api-description}}
-This section gives an overview of all classes and modules in \sphinxstyleemphasis{stc} as well as an code description.
+This section gives an overview of all classes and modules in \sphinxstyleemphasis{sbd} as well as an code description.
 
 
 \section{Configuration class}

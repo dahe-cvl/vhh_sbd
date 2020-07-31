@@ -133,10 +133,9 @@ class SBD(object):
             printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
             shot_boundaries_np = self.runWithoutCandidateSelection(self.src_path, vid_name)
 
+
         # convert shot boundaries to final shots
-        final_shot_l = []
-        if (len(shot_boundaries_np) > 0):
-            final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np)
+        final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np)
 
         # export final results
         if (self.config_instance.save_final_results == 1):
@@ -177,7 +176,10 @@ class SBD(object):
             if (ret == True):
                 frame = self.pre_proc_instance.applyTransformOnImg(frame)
                 frame_l.append(frame)
-                #cv2.imwrite(self.config_instance.path_eval_results + vid_name + "_" + str(cnt) + ".png", frame)
+
+                if (self.config_instance.debug_flag == 1):
+                    if(cnt <= 500):
+                        cv2.imwrite(self.config_instance.path_eval_results + vid_name + "_" + str(cnt) + ".png", frame)
 
             else:
                 break
@@ -186,6 +188,7 @@ class SBD(object):
 
         # calculate features and similarities
         number_of_frames = len(frame_np)
+
         #number_of_frames = 1000
         results_l = []
         shot_l = []
@@ -253,7 +256,6 @@ class SBD(object):
                     printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
                     shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
 
-
         # save raw results to file
         if (int(self.config_instance.save_raw_results) == 1):
             print("save raw results ... ")
@@ -265,9 +267,13 @@ class SBD(object):
             elif (self.config_instance.path_postfix_raw_results == 'npy'):
                 self.exportRawResultsAsNumpy(results_np)
 
+        if (len(shot_l) == 0):
+            print("no cuts detected ... ")
+            shot_l.append([self.vid_instance.vidName, (-1, -1)])
+
         # convert shot boundaries to shots
         shots_np = np.array(shot_l)
-        print(shots_np)
+
         return shots_np
 
     def runWithCandidateSelection(self, candidates_np):
@@ -432,12 +438,20 @@ class SBD(object):
         """
         # convert results to shot instances
 
-        if(len(shot_boundaries_np) == 0):
-            print("no shots detected ... ")
-
         shot_l = []
+
         vidname_curr = shot_boundaries_np[0][0]
         start_curr, stop_curr = shot_boundaries_np[0][1]
+
+        print("shot boundaries list: ")
+        print(shot_boundaries_np)
+
+        if (start_curr == -1 and stop_curr == -1):
+            print("no shots detected ... ")
+            shot = Shot(len(shot_boundaries_np), vidname_curr, 0, int(self.vid_instance.number_of_frames) - 1)
+            shot_l.append(shot)
+            return shot_l
+
         shot_start = 0
         shot_end = start_curr
         shot = Shot(1, vidname_curr, shot_start, shot_end)
@@ -457,7 +471,7 @@ class SBD(object):
         vidname_curr = shot_boundaries_np[-1][0]
         start_curr, stop_curr = shot_boundaries_np[-1][1]
         shot_start = int(stop_curr)
-        shot_end = int(self.vid_instance.number_of_frames)
+        shot_end = int(self.vid_instance.number_of_frames) - 1
         shot = Shot(len(shot_boundaries_np), vidname_curr, shot_start, shot_end)
         shot_l.append(shot)
 
