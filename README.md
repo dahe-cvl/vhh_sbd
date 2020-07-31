@@ -1,6 +1,6 @@
 # Plugin package: Shot Boundary Detection
 
-This package includes all methods to classify a given shot/or image sequence in one of the categories Pan, Tilt or NA.
+This package includes all methods to detect and split a given video into the basic shots. (currently focused on Abrupt Transitions).
 
 ## Package Description
 
