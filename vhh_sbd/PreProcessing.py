@@ -1,7 +1,7 @@
-from sbd.utils import *
+from vhh_sbd.utils import *
 import cv2
 import numpy as np
-from sbd.Configuration import Configuration
+from vhh_sbd.Configuration import Configuration
 
 
 class PreProcessing(object):

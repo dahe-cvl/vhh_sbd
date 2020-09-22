@@ -1,4 +1,4 @@
-from sbd.utils import *
+from vhh_sbd.utils import *
 import numpy as np
 import torch
 from torchvision import models, transforms

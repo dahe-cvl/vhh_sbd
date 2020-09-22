@@ -3,10 +3,10 @@ import csv
 from time import gmtime, strftime
 import json
 from scipy.spatial import distance
-from sbd.Video import Video
+from vhh_sbd.Video import Video
 import matplotlib.pyplot as plt
 from inspect import signature
-from sbd.Configuration import Configuration
+from vhh_sbd.Configuration import Configuration
 import os
 
 

@@ -1,6 +1,6 @@
-from sbd.SBD import SBD
-from sbd.utils import *
-from sbd.Model import PyTorchModel
+from vhh_sbd.SBD import SBD
+from vhh_sbd.utils import *
+from vhh_sbd.Model import PyTorchModel
 import os
 import numpy as np
 

@@ -14,8 +14,8 @@ try:
     import accimage
 except ImportError:
     accimage = None
-from sbd.Configuration import Configuration
-from sbd.PreProcessing import PreProcessing
+from vhh_sbd.Configuration import Configuration
+from vhh_sbd.PreProcessing import PreProcessing
 
 
 class deepSBD(nn.Module):

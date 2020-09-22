@@ -1,12 +1,12 @@
-from sbd.Video import Video, VideoDataset
-from sbd.utils import *
-from sbd.Configuration import Configuration
-from sbd.Shot import Shot
-from sbd.PreProcessing import PreProcessing
-from sbd.Model import *
+from vhh_sbd.Video import Video, VideoDataset
+from vhh_sbd.utils import *
+from vhh_sbd.Configuration import Configuration
+from vhh_sbd.Shot import Shot
+from vhh_sbd.PreProcessing import PreProcessing
+from vhh_sbd.Model import *
 from matplotlib import pyplot as plt
 from scipy.spatial import distance
-from sbd.DeepSBD import CandidateSelection
+from vhh_sbd.DeepSBD import CandidateSelection
 import os
 import cv2
 
@@ -160,7 +160,7 @@ class SBD(object):
         self.vid_instance = VideoDataset(src_path + "/" + vid_name, transform=trans)
 
         # initial pre-trained model
-        self.net = PyTorchModel(model_arch=self.config_instance.backbone_cnn)
+        self.net = PyTorchModel(model_arch=self.config_instance.backbone_cnn, use_gpu=self.config_instance.use_gpu)
 
         # read all frames of video
         cap = cv2.VideoCapture(src_path + "/" + vid_name)
@@ -286,7 +286,7 @@ class SBD(object):
         #printCustom("process shot detection ... ", STDOUT_TYPE.INFO);
 
         # initial pre-trained model
-        self.net = PyTorchModel(model_arch=self.config_instance.backbone_cnn)
+        self.net = PyTorchModel(model_arch=self.config_instance.backbone_cnn, use_gpu=self.config_instance.use_gpu)
 
         results_l = []
         shot_l = []
