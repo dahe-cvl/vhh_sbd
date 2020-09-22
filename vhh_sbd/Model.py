@@ -11,7 +11,7 @@ class PyTorchModel(object):
     This class is needed to create a specified cnn model architecture and extract the the features.
     """
 
-    def __init__(self, model_arch):
+    def __init__(self, model_arch, use_gpu: bool=False):
         """
         Constructor.
         :param model_arch: This parameter must hold a string containing a valid model architecture name.
@@ -29,6 +29,10 @@ class PyTorchModel(object):
 
         self.normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
+        self.use_gpu = use_gpu and torch.cuda.is_available()
+        device = "GPU" if self.use_gpu else "CPU"
+        printCustom(f"PyTorchModel created for inference on " + device, STDOUT_TYPE.INFO)
+
     def getFeatures(self, frm: np.ndarray):
         """
         This method is used to extract features.
@@ -45,13 +49,17 @@ class PyTorchModel(object):
             image = Variable(image, requires_grad=True)
             image = image.unsqueeze(0)  # this is for VGG, may not be needed for ResNet
 
-            self.model.features = self.model.features.to('cuda')
-            self.model.features.eval()
-            with torch.no_grad():
-                CUDA = torch.cuda.is_available()
-                if CUDA:
-                    inputs = image.cuda()
+            # do inference on CPU or GPU depending on CUDA availability
+            if self.use_gpu:
+                self.model.features = self.model.features.cuda()
+                inputs = image.cuda()
+            else:
+                self.model.features = self.model.features.cpu()
+                inputs = image.cpu()
 
+            self.model.features.eval()
+
+            with torch.no_grad():
                 outputs = self.model.features(inputs)
                 outputs_flatten = outputs.view(outputs.size(0), -1)
                 #print(outputs_flatten.size())

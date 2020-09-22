@@ -31,6 +31,7 @@ class Configuration(object):
         self.config_file = config_file
 
         self.debug_flag = -1
+        self.use_gpu = False
 
         self.resize_dim = None
         self.flag_convert2Gray = -1
@@ -81,6 +82,9 @@ class Configuration(object):
 
         # developer_config section
         self.debug_flag = int(developer_config['DEBUG_FLAG'])
+
+        if int(developer_config['USE_GPU']) == 1:
+            self.use_gpu = True
 
         # pre-processing section
         self.resize_dim = (int(pre_processing_config['RESIZE_DIM'].split(',')[0]),
