@@ -1,6 +1,7 @@
 
 Development:
   DEBUG_FLAG: 0             # 1 ... activate 0 ... deactivate
+  USE_GPU: 1                # 1 ... use GPU if available 0 ... dont use GPU
 
 PreProcessing:
   ###
