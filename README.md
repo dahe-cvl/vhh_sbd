@@ -76,7 +76,9 @@ e.g. python Demo/vhh_sbd_on_single_video.py /data/share/maxrecall_vhh_mmsi/devel
 
 ## Release Generation
 
+* Create and checkout release branch: (e.g. v1.1.0): ```git checkout -b v1.1.0```
 * Update version number in setup.py
+* Update Sphinx documentation and release version
 * Make sure that ```pip``` and ```setuptools``` are up to date
 * Install ```wheel``` and ```twine```
 * Build Source Archive and Built Distribution using ```python setup.py sdist bdist_wheel```
