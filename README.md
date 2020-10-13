@@ -15,6 +15,8 @@ HTML format (only usable if repository is available in local storage): [vhh_sbd_
 
    * Ubuntu 18.04 LTS (also tested on Windows 10)
    * python version 3.6.x
+   
+### 0 Environment Setup (optional)
 
 **Create a virtual environment:**
 
@@ -25,14 +27,16 @@ HTML format (only usable if repository is available in local storage): [vhh_sbd_
 
    * ```source /xxx/vhh_sbd/bin/activate```
    
-### Install using Pip
+### 1A Install using Pip
 
 The VHH Shot Boundary Detection package is available on [PyPI](https://pypi.org/project/vhh-sbd/) and can be installed via ```pip```.
 
 * Update pip and setuptools (tested using pip\==20.2.3 and setuptools==50.3.0)
 * ```pip install vhh-sbd```
 
-### Install by building from Source
+Alternatively, you can also build the package from source.
+
+### 1B Install by building from Source
 
 **Checkout vhh_sbd repository to a specified folder:**
 
@@ -51,17 +55,17 @@ You can check the success of the installation by using the command *pip list*. T
 with all installed python packages and it should include *vhh-sbd*.
    
    
-**Install PyTorch :**
+### 2 Install PyTorch
 
 Install a Version of PyTorch depending on your setup. Consult the [PyTorch website](https://pytorch.org/get-started/locally/) for detailed instructions.
 
-**Setup environment variables:**
+### 3 Setup environment variables (optional)
 
    * ```source /data/dhelm/python_virtenv/vhh_sbd_env/bin/activate```
    * ```export CUDA_VISIBLE_DEVICES=1```
    * ```export PYTHONPATH=$PYTHONPATH:/XXX/vhh_sbd/:/XXX/vhh_sbd/Develop/:/XXX/vhh_sbd/Demo/```
 
-**Run demo script**
+### 4 Run demo script (optional)
 
    * change to root directory of the repository
    * ```python Demo/vhh_sbd_run_on_single_video.py```
