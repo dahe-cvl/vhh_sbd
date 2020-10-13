@@ -24,6 +24,15 @@ HTML format (only usable if repository is available in local storage): [vhh_sbd_
 **Activate the environment:**
 
    * ```source /xxx/vhh_sbd/bin/activate```
+   
+### Install using Pip
+
+The VHH Shot Boundary Detection package is available on [PyPI](https://pypi.org/project/vhh-sbd/) and can be installed via ```pip```.
+
+* Update pip and setuptools (tested using pip\==20.2.3 and setuptools==50.3.0)
+* ```pip install vhh-sbd```
+
+### Install by building from Source
 
 **Checkout vhh_sbd repository to a specified folder:**
 
@@ -31,14 +40,14 @@ HTML format (only usable if repository is available in local storage): [vhh_sbd_
 
 **Install the sbd package and all dependencies:**
 
-   * Update pip and setuptools (tested using pip\==20.2.3 and setuptools==50.3.0)
-   * Install the Wheel package: ```pip install wheel```
+   * Update ```pip``` and ```setuptools``` (tested using pip\==20.2.3 and setuptools==50.3.0)
+   * Install the ```wheel``` package: ```pip install wheel```
    * change to the root directory of the repository (includes setup.py)
    * ```python setup.py bdist_wheel```
    * The aforementioned command should create a /dist directory containing a wheel. Install the package using ```python -m pip install dist/xxx.whl```
    
 > **_NOTE:_**
-You can check the success of the installation by using the commend *pip list*. This command should give you a list
+You can check the success of the installation by using the command *pip list*. This command should give you a list
 with all installed python packages and it should include *vhh-sbd*.
    
    
@@ -61,3 +70,10 @@ e.g. python Demo/vhh_sbd_on_single_video.py /data/share/maxrecall_vhh_mmsi/devel
             /home/dhelm/VHH_Develop/installed_pkg/vhh_pkgs/vhh_sbd/config/config_vhh_test.yaml
 
 
+## Release Generation
+
+* Update version number in setup.py
+* Make sure that ```pip``` and ```setuptools``` are up to date
+* Install ```wheel``` and ```twine```
+* Build Source Archive and Built Distribution using ```python setup.py sdist bdist_wheel```
+* Upload package to PyPI using ```twine upload dist/*```
