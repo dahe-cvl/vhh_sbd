@@ -1,31 +1,16 @@
 from vhh_sbd.SBD import SBD
-from vhh_sbd.utils import *
-from vhh_sbd.Model import PyTorchModel
 import os
-import numpy as np
-
-printCustom("Welcome to the sbd framework!", STDOUT_TYPE.INFO);
-printCustom("Setup environment variables ... ", STDOUT_TYPE.INFO)
-#print("------------------------------------------")
-#print("LD_LIBRARY_PATH: ", str(os.environ['LD_LIBRARY_PATH']))
-#print("CUDA_HOME: ", str(os.environ['CUDA_HOME']))
-#print("PATH: ", str(os.environ['PATH']))
-#print("CUDA_VISIBLE_DEVICES: ", str(os.environ['CUDA_VISIBLE_DEVICES']))
-#print("PYTHONPATH: ", str(os.environ['PYTHONPATH']))
-print("------------------------------------------")
-
-
-printCustom("start process ... ", STDOUT_TYPE.INFO)
-
-# read commandline arguments
-params = getCommandLineParams()
 
 # run shot boundary detection process
-video_filename = params[1]
-config_file = params[2]
-
-# initialize and run sbd process
+config_file = "/caa/Homes01/dhelm/working/vhh/develop/vhh_sbd/config/config_vhh_test.yaml"
 sbd_instance = SBD(config_file)
-sbd_instance.runOnSingleVideo(video_filename)
 
-printCustom("process finished!", STDOUT_TYPE.INFO)
+videos_path = "/data/share/maxrecall_vhh_mmsi/release/videos/downloaded/"
+videos_path_list = os.listdir(videos_path)
+print(videos_path_list)
+
+for file in videos_path_list[:1]:
+    print(videos_path + file)
+
+    max_recall_id = int(file.split('.')[0])
+    sbd_instance.runOnSingleVideo(videos_path + file, max_recall_id=max_recall_id)

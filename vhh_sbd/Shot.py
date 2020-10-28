@@ -26,7 +26,7 @@ class Shot(object):
         This method is used to convert all properties of a shot into a semicolon-separated string.
         :return:
         """
-        tmp_str = str(self.sid) + ";" + str(self.movie_name) + ";" + str(self.start_pos) + ";" + str(self.end_pos)
+        tmp_str = str(self.movie_name) + ";" + str(self.sid) + ";" + str(self.start_pos) + ";" + str(self.end_pos)
         return tmp_str
 
     def printShotInfo(self):

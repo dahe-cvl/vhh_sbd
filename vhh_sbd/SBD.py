@@ -40,62 +40,6 @@ class SBD(object):
         self.src_path = ""
         self.filename_l = ""
 
-    def runOnFolder(self):
-        """
-        This method is used to run sbd on all video files included in a specified folder.
-
-        :return: This method returns a numpy list of all detected shots in all videos.
-        """
-        shots_np = None
-
-        self.src_path = self.config_instance.path_videos
-        self.filename_l = os.listdir(self.src_path)
-        vid_name_l = self.filename_l
-
-        shot_boundaries_l = []
-        for vid_name in vid_name_l:
-            printCustom("--------------------------", STDOUT_TYPE.INFO)
-            printCustom("Process video: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
-
-            # load video
-            self.vid_instance = Video()
-            self.vid_instance.load(self.src_path + "/" + vid_name)
-
-            if (self.config_instance.activate_candidate_selection == 1):
-                # candidate selection
-                printCustom("Process candidate selection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
-                candidate_selection_result_np = self.candidate_selection_instance.run(self.src_path + "/" + vid_name)
-
-                # shot boundary detection
-                printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
-                shots_np = self.runWithCandidateSelection(candidate_selection_result_np)
-            elif (self.config_instance.activate_candidate_selection == 0):
-                # shot boundary detection
-                printCustom("Process shot boundary detection: " + str(vid_name) + " ... ", STDOUT_TYPE.INFO)
-                shots_np = self.runWithoutCandidateSelection(self.src_path, vid_name)
-
-            # convert shot boundaries to final shots
-            if(len(shots_np) > 0):
-                shots_l = self.convertShotBoundaries2Shots(shots_np)
-
-            # export final results
-            if (self.config_instance.save_final_results == 1):
-                self.exportFinalResultsToCsv(shots_l, str(vid_name.split('.')[0]))
-
-            shot_boundaries_l.extend(shots_np)
-
-        shot_boundaries_np = np.squeeze(np.array(shot_boundaries_l))
-
-        # convert shot boundaries to final shots
-        if (len(shot_boundaries_np) > 0):
-            final_shot_l = self.convertShotBoundaries2Shots(shot_boundaries_np)
-
-        # export final results
-        if (self.config_instance.save_final_results == 1):
-            self.exportFinalResultsToCsv(final_shot_l, "all")
-
-        return final_shot_l
-
     def runOnSingleVideo(self, video_filename, max_recall_id=-1):
         """
         Method to run sbd on specified video.
@@ -351,7 +295,7 @@ class SBD(object):
         printCustom("Export shot list to csv file ... ", STDOUT_TYPE.INFO)
 
         fp = open(self.config_instance.path_final_results + "/" + str(name) + ".csv", 'w')   # final_shots_"
-        fp.write("shot_id;vid_name;start;end" + "\n")
+        fp.write("vid_name;shot_id;start;end" + "\n")
         for shot in shot_l:
             tmp_str = shot.convert2String()
             fp.write(tmp_str + "\n")
