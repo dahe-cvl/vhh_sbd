@@ -2,7 +2,8 @@ import numpy as np
 import os
 
 print("generate overall summary file ...")
-path = "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/develop/sbd_eval_jocch_paper_adaptive/"
+path = "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/develop/sbd_eval_jocch_paper_fixed/"
+experiment_name = "sbd_eval_jocch_paper_fixed"
 #path = "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Develop/Evaluation/"
 
 file_list = [f for f in os.listdir(path) if f.endswith('.csv') and f.startswith("final_")]
@@ -29,15 +30,15 @@ final_results_np = np.array(final_results)
 
 
 print("write to csv file ... ")
-fp = open(path + "/overall_summary.csv", 'w')
+fp = open(path + "/summary_" + str(experiment_name) + ".csv", 'w')
 # write header
 fp.write("th;tp;fp;tn;fn;p;r;acc;f1_score;tp_rate;fp_rate\n")
 
 for i in range(0, len(final_results_np)):
-    entry_str = final_results_np[i][0] + ";" + final_results_np[i][1] + ";" + final_results_np[i][2] + ";" + \
-                final_results_np[i][3] + ";" + final_results_np[i][4] + ";" + final_results_np[i][5] + ";" + \
-                final_results_np[i][6] + ";" + final_results_np[i][7] + ";" + final_results_np[i][8] + ";" + \
-                final_results_np[i][9] + ";" + final_results_np[i][10]
+    entry_str = final_results_np[i][0].replace('.', ',') + ";" + final_results_np[i][1] + ";" + final_results_np[i][2] + ";" + \
+                final_results_np[i][3] + ";" + final_results_np[i][4] + ";" + final_results_np[i][5].replace('.', ',') + ";" + \
+                final_results_np[i][6].replace('.', ',') + ";" + final_results_np[i][7].replace('.', ',') + ";" + final_results_np[i][8].replace('.', ',') + ";" + \
+                final_results_np[i][9].replace('.', ',') + ";" + final_results_np[i][10].replace('.', ',')
     fp.write(entry_str + '\n')
 fp.close()
 
