@@ -416,7 +416,7 @@ class SBD(object):
         start_curr, stop_curr = shot_boundaries_np[-1][1]
         shot_start = int(stop_curr)
         shot_end = int(self.vid_instance.number_of_frames) - 1
-        shot = Shot(len(shot_boundaries_np), vidname_curr, shot_start, shot_end)
+        shot = Shot(len(shot_boundaries_np) + 1, vidname_curr, shot_start, shot_end)
         shot_l.append(shot)
 
         if(self.config_instance.debug_flag == 1):
