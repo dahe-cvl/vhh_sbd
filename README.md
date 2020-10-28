@@ -70,8 +70,8 @@ Install a Version of PyTorch depending on your setup. Consult the [PyTorch websi
    * change to root directory of the repository
    * ```python Demo/vhh_sbd_run_on_single_video.py```
 
-e.g. python Demo/vhh_sbd_on_single_video.py /data/share/maxrecall_vhh_mmsi/develop/videos/downloaded/3.m4v 
-            /home/dhelm/VHH_Develop/installed_pkg/vhh_pkgs/vhh_sbd/config/config_vhh_test.yaml
+> **_NOTE:_** 
+Do not forget to change paths in demo script!
 
 
 ## Release Generation
