@@ -7,6 +7,8 @@ from vhh_sbd.Video import Video
 import matplotlib.pyplot as plt
 from inspect import signature
 from vhh_sbd.Configuration import Configuration
+from vhh_sbd.SBD import SBD
+from vhh_sbd.Shot import Shot
 import os
 
 
@@ -128,6 +130,89 @@ class Evaluation(object):
         #print(shot_boundaries_np)
         return shot_boundaries_np
 
+    def convertShotBoundaries2Shots(self, shot_boundaries_np: np.ndarray, vid_instance):
+        """
+        This method converts a list with detected shot boundaries to the final shots.
+
+        :param shot_boundaries_np: This parameter must hold a numpy array with all detected shot boundaries.
+        :return: This method returns a numpy list with the final shots.
+        """
+        # convert results to shot instances
+
+        shot_l = []
+
+        vidname_curr = shot_boundaries_np[0][0]
+        start_curr, stop_curr = shot_boundaries_np[0][1]
+
+        print("shot boundaries list: ")
+        
+        if (start_curr == -1 and stop_curr == -1):
+            print("no shots detected ... ")
+            shot = Shot(len(shot_boundaries_np), vidname_curr, 0, int(vid_instance.number_of_frames) - 1)
+            shot_l.append(shot)
+            return shot_l
+
+        shot_start = 0
+        shot_end = start_curr
+        shot = Shot(1, vidname_curr, shot_start, shot_end)
+        shot_l.append(shot)
+
+        for i in range(1, len(shot_boundaries_np)):
+            #print(i)
+            start_prev, stop_prev = shot_boundaries_np[i-1][1]
+            start_curr, stop_curr = shot_boundaries_np[i][1]
+            vidname_curr = shot_boundaries_np[i][0]
+
+            shot_start = int(stop_prev)
+            shot_end = int(start_curr)
+            shot = Shot(i + 1, vidname_curr, shot_start, shot_end)
+            shot_l.append(shot)
+
+        vidname_curr = shot_boundaries_np[-1][0]
+        start_curr, stop_curr = shot_boundaries_np[-1][1]
+        shot_start = int(stop_curr)
+        shot_end = int(vid_instance.number_of_frames) - 1
+        shot = Shot(len(shot_boundaries_np) + 1, vidname_curr, shot_start, shot_end)
+        shot_l.append(shot)
+
+        if(self.config_instance.debug_flag == 1):
+            # print shot infos
+            for i in range(0, len(shot_l)):
+                shot_l[i].printShotInfo()
+
+        return shot_l
+
+    def convertShots2ShotBoundaries(self, shot_l: list):
+        
+        shot_boundaries_l = []
+        for i in range(1, len(shot_l)):
+            start_curr, stop_curr = shot_l[i][1]
+            video_name_curr = shot_l[i][0]
+
+            start_prev, stop_prev = shot_l[i-1][1]
+            video_name_prev = shot_l[i-1][0]
+
+            shot_boundaries_l.append([video_name_curr, (stop_prev, start_curr)])
+        
+        shot_boundaries_np = np.array(shot_boundaries_l)
+        return shot_boundaries_np
+
+    def load_results(self, filename):
+        fp = open(filename, 'r')
+        lines = fp.readlines()
+        fp.close()
+
+        data_l = []
+        for line in lines[1:]:
+            line = line.replace('\n', '')
+            line = line.replace('\\', '/')
+            #print(line)
+            line_split = line.split(';')
+            #print(line_split)
+            data_l.append([line_split[0].split('.')[0], (int(line_split[2]), int(line_split[3]))])
+        #data_np = np.array(gt_annotation_list)
+        return data_l
+
     def evaluation(self, result_np, vid_name):
         """
         This method is needed to evaluate the gathered results for a specified video.
@@ -136,10 +221,8 @@ class Evaluation(object):
         :param vid_name: This parameter represents a video name.
         :return: This method returns the calculated TP, TN, FP and FN counters.
         """
-        #print("NOT IMPLEMENTED YET");
-
         src_path = self.config_instance.path_videos
-        gt_data = self.config_instance.path_gt_data
+        gt_path = self.config_instance.path_gt_data
 
         if (self.config_instance.path_postfix_raw_results == 'csv'):
             vid_name = vid_name.replace('results_raw_', '')
@@ -148,45 +231,26 @@ class Evaluation(object):
             vid_name = vid_name.replace('results_raw_', '')
             vid_name = vid_name.replace('.npy', '')
 
-        #print(vid_name)
-        #vid_name = result_np[0][0];
         video_obj = Video()
         video_obj.load(src_path + "/" + str(vid_name) + ".m4v")
+        video_obj.printVIDInfo()
+        
+        # load groundtruth labels
+        gt_file_list = os.listdir(gt_path)
+        gt_file_list.sort()
+        idx = gt_file_list.index(str(vid_name.split('.')[0]) + ".csv")
 
-        # load gt
-        fp = open(gt_data, 'r')
-        lines = fp.readlines()
-        fp.close()
-        #print(lines)
-
-        gt_l = []
-        for i in range(1, len(lines)):
-            line = lines[i].replace('\n', '')
-            line = line.replace('[', '')
-            line = line.replace(']', '')
-            line = line.replace('\'', '')
-            line = line.replace(',', ';')
-            line = line.replace(' ', '')
-            line_split = line.split(';')
-            #print(line_split)
-            idx = int(line_split[0])
-            vidname = line_split[1]
-            start = int(line_split[2])
-            stop = int(line_split[3])
-            gt_l.append([vidname.split('.')[0], (start, stop)])
-
+        file = gt_file_list[idx]
+        #print(file)
+        gt_l = self.load_results(gt_path + file)
+        #print(gt_np)
         gt_np = np.array(gt_l)
         #print(gt_np[:10])
 
-        '''
+        sb_gt_np = self.convertShots2ShotBoundaries(gt_l)
+        #print(sb_gt_np[:10])
+        
         # load pred
-        fp = open(pred_data, 'r');
-        lines = fp.readlines();
-        fp.close();
-        # print(lines)
-        '''
-        #print("AAA")
-        #print(result_np)
         pred_l = []
         for i in range(0, len(result_np)):
             vidname = result_np[i][0]
@@ -194,24 +258,21 @@ class Evaluation(object):
             stop = int(result_np[i][2])
             pred_l.append([vidname, (start, stop)])
 
-        pred_np = np.array(pred_l)
-        #print(pred_np[:10])
-
+        sb_pred_np = np.array(pred_l)
+        #print(sb_pred_np[:10])
+        
+        '''
         print(vid_name)
         idx = np.where(vid_name == pred_np)[0]
         sb_pred_np = pred_np[idx]
-        #print("---------")
-        #print(sb_pred_np)
-
-        #exit()
-
+        print("---------")
+        print(sb_pred_np)
         #print(gt_np[:10])
-        idx = np.where(vid_name == gt_np)[0]
-        sb_gt_np = gt_np[idx]
-        #print("---------")
-        #print(sb_gt_np)
-
-        #exit()
+        idx = np.where(vid_name == all_gt_data_np)[0]
+        sb_gt_np = all_gt_data_np[idx]
+        print("---------")
+        print(sb_gt_np)
+        '''
 
         # video-based predictions
         tp_cnt = 0
@@ -354,21 +415,17 @@ class Evaluation(object):
         elif(self.config_instance.threshold_mode == 'fixed'):
             thresholds_l = [1.0, 0.95, 0.90, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55,
                             0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
-            #thresholds_l = [0.80]
+            #thresholds_l = [0.80, 0.50, 0.30]
         else:
             thresholds_l = []
 
-        #print(thresholds_l)
-        #exit()
+
         for t in thresholds_l:
-        #for s in range(0, 1000):
             tp_sum = 0
             fp_sum = 0
             tn_sum = 0
             fn_sum = 0
-            #THRESHOLD = s * 0.001;
             THRESHOLD = t
-            #print("step: " + str(s))
 
             if(int(self.config_instance.save_eval_results) == 1):
                 fp_video_based = open(self.config_instance.path_eval_results + "/final_results_th-" + str(THRESHOLD) + ".csv", 'w')
@@ -382,14 +439,13 @@ class Evaluation(object):
                 elif (self.config_instance.path_postfix_raw_results == 'npy'):
                     results_np = self.loadRawResultsFromNumpy(self.config_instance.path_raw_results_eval + "/" + vid_name)
 
-                # calculate similarity measures of consecutive frames and threshold it
-                shot_boundaries_np1 = self.calculateSimilarityMetric(results_np, threshold=THRESHOLD)
-                print(shot_boundaries_np1)
-                #continue
+                # calculate similarity measures of consecutive frames and threshold them
+                shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=THRESHOLD)
+                print(shot_boundaries_np)
 
-                #if (len(shot_boundaries_np1) != 0):
-                tp, fp, tn, fn = self.evaluation(shot_boundaries_np1, vid_name);
-                p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp, fp, tn, fn);
+                # calculate evaluation metrics
+                tp, fp, tn, fn = self.evaluation(shot_boundaries_np, vid_name)
+                p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp, fp, tn, fn)
 
                 if (int(self.config_instance.save_eval_results) == 1):
                     tmp_str = str(vid_name.replace('results_raw_', '').split('.')[0]) + ";" + str(tp) + ";" + str(fp) + \
