@@ -9,7 +9,7 @@ videos_path = "/data/share/maxrecall_vhh_mmsi/release/videos/downloaded/"
 videos_path_list = os.listdir(videos_path)
 print(videos_path_list)
 
-for file in videos_path_list[:1]:
+for file in videos_path_list:
     print(videos_path + file)
 
     max_recall_id = int(file.split('.')[0])
