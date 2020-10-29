@@ -2,9 +2,13 @@ import numpy as np
 import os
 
 print("generate overall summary file ...")
-path = "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/develop/sbd_eval_jocch_paper_fixed/"
-experiment_name = "sbd_eval_jocch_paper_fixed"
-#path = "/caa/Homes01/dhelm/working/pycharm_vhh_sbd/Develop/Evaluation/"
+path = "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/develop/squeezenet/sbd_eval_jocch_paper_fixed/"
+
+experiment_name = path.split('/')[-2]
+net = path.split('/')[-3]
+
+print(experiment_name)
+print(net)
 
 file_list = [f for f in os.listdir(path) if f.endswith('.csv') and f.startswith("final_")]
 file_list.sort()
@@ -28,11 +32,20 @@ for file in file_list:
 final_results_np = np.array(final_results)
 #print(final_results_np.shape)
 
-
 print("write to csv file ... ")
-fp = open(path + "/summary_" + str(experiment_name) + ".csv", 'w')
+fp = open(path + "/summary_" + str(net) + "_" + str(experiment_name) + ".csv", 'w')
 # write header
-fp.write("th;tp;fp;tn;fn;p;r;acc;f1_score;tp_rate;fp_rate\n")
+fp.write("th_" + str(net) + "_" + str(experiment_name) + 
+         ";tp_" + str(net) + "_" + str(experiment_name) + 
+         ";fp_" + str(net) + "_" + str(experiment_name) + 
+         ";tn_" + str(net) + "_" + str(experiment_name) + 
+         ";fn_" + str(net) + "_" + str(experiment_name) + 
+         ";p_" + str(net) + "_" + str(experiment_name) + 
+         ";r_" + str(net) + "_" + str(experiment_name) + 
+         ";acc_" + str(net) + "_" + str(experiment_name) + 
+         ";f1_score_" + str(net) + "_" + str(experiment_name) + 
+         ";tp_rate_" + str(net) + "_" + str(experiment_name) + 
+         ";fp_rate_" + str(net) + "_" + str(experiment_name) + "\n")
 
 for i in range(0, len(final_results_np)):
     entry_str = final_results_np[i][0].replace('.', ',') + ";" + final_results_np[i][1] + ";" + final_results_np[i][2] + ";" + \
