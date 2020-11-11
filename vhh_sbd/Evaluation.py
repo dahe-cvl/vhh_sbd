@@ -409,11 +409,12 @@ class Evaluation(object):
         fp_video_based = None
 
         if(self.config_instance.threshold_mode == 'adaptive'):
-            thresholds_l = [1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0,
-                            3.1, 3.2, 3.3, 3.4, 3.5, 3.55, 3.6, 3.65, 3.7, 3.75, 4.0, 4.5, 5.0, 5.5, 6.0,
-                            7.0, 7.5, 8.5, 9.0, 9.5, 10.5, 11.0, 11.5, 12.0, 12.5, 13.0, 13.5, 14.0, 14.5,
-                            15.0, 15.5, 16.0
-                            ]
+            ## alpha
+            thresholds_l = [0.1, 0.15, 0.2, 0.25, 0.30, 0.4, 0.45, 0.5, 0.55, 0.6]
+
+            ## beta
+            thresholds2_l = [1.0, 0.95, 0.90, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55,
+                            0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
         elif(self.config_instance.threshold_mode == 'fixed'):
             thresholds_l = [1.0, 0.95, 0.90, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55,
                             0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
@@ -430,7 +431,7 @@ class Evaluation(object):
             THRESHOLD = t
 
             if(int(self.config_instance.save_eval_results) == 1):
-                fp_video_based = open(self.config_instance.path_eval_results + "/final_results_th-" + str(THRESHOLD) + ".csv", 'w')
+                fp_video_based = open(self.config_instance.path_eval_results + "/final_results_th-" + str(THRESHOLD)  + "-" + str(THRESHOLD2) + ".csv", 'w')
                 header = "vid_name;tp;fp;tn;fn;p;r;acc;f1_score;tp_rate;fp_rate"
                 fp_video_based.write(header + "\n")
 
@@ -442,7 +443,7 @@ class Evaluation(object):
                     results_np = self.loadRawResultsFromNumpy(self.config_instance.path_raw_results_eval + "/" + vid_name)
 
                 # calculate similarity measures of consecutive frames and threshold them
-                shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=THRESHOLD)
+                shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=THRESHOLD, threshold2=THRESHOLD2)
                 print(shot_boundaries_np)
 
                 # calculate evaluation metrics
