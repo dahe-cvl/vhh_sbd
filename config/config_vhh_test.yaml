@@ -59,10 +59,13 @@ SbdCore:
   THRESHOLD_MODE: 'fixed'    # adaptive OR fixed
   ###
   # This parameter is used to specify the threshold (only in fixed threshold mode - [0-1]).
-  THRESHOLD: 0.8                 # value [0-1]
+  THRESHOLD: 0.8                 # value [0-1]  --> FIXED MODE
   ###
-  # This parameter is used to specify the adaptive threshold.
+  # This parameter is used to specify the threshold (only in adaptive threshold mode).
   ALPHA: 2.0                     # value > 1
+  ###
+  # This parameter is used to specify the threshold (only in adaptive threshold mode).
+  BETA: 0.8                 # value [0-1]
   ###
   # This parameter is used to specify the window size (frames history window - only for adaptive mode).
   WINDOW_SIZE: 100               # only for adaptive mode

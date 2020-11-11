@@ -54,6 +54,7 @@ class Configuration(object):
         self.path_videos = None
         self.threshold = 0.0
         self.alpha = 0.0
+        self.beta = 0.0
         self.threshold_mode = None
         self.window_size = None
         self.backbone_cnn = None
@@ -111,6 +112,7 @@ class Configuration(object):
         self.window_size = int(sbd_core_config['WINDOW_SIZE'])
         self.threshold = float(sbd_core_config['THRESHOLD'])
         self.alpha = float(sbd_core_config['ALPHA'])
+        self.beta = float(sbd_core_config['BETA'])
         self.backbone_cnn = sbd_core_config['BACKBONE_CNN']
         self.similarity_metric = sbd_core_config['SIMILARITY_METRIC']
 
