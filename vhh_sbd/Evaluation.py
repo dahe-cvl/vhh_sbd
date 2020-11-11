@@ -60,7 +60,7 @@ class Evaluation(object):
         return dist_np
     '''
 
-    def calculateSimilarityMetric(self, results_np: np.ndarray, threshold=4.5):
+    def calculateSimilarityMetric(self, results_np: np.ndarray, threshold=4.5, threshold2=[]):
         """
         This method is used to calculate the similarity metrics based on the pre-calculated raw results.
 
@@ -85,22 +85,24 @@ class Evaluation(object):
                     thresholds = []
                     window_size = self.config_instance.window_size
                     alpha = threshold
-                    for i in range(0, len(distances_np)):
-                        if (i % window_size == 0):
-                            th = np.mean(distances_np[i:i + window_size]) * alpha
+                    beta = threshold2
+                    for x in range(0, len(distances_np)):
+                        if (x % window_size == 0):
+                            th = np.mean(distances_np[x:x + window_size]) + alpha + np.std(distances_np[x:x + window_size]) * beta
                         thresholds.append(th)
                     thresholds = np.array(thresholds)
                     print(thresholds.shape)
 
-                    for i in range(0, len(distances_np)):
-                        if (distances_np[i] > thresholds[i]):
-                            idx_curr = i + 1
-                            idx_prev = i
+                    for x in range(0, len(distances_np)):
+                        if (distances_np[x] > thresholds[x]):
+                            idx_curr = x + 1
+                            idx_prev = x
                             shot_boundaries_l.append([vid_name, idx_prev, idx_curr])
                             # print("cut at: " + str(i) + " -> " + str(i+1))
                             # print(i)
                             # print(thresholds[i])
                             # print(distances_np[i])
+
                 if (THRESHOLD_MODE == "fixed"):
                     idx_max = np.where(distances_np > threshold)[0]
                     print(idx_max)
