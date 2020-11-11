@@ -2,7 +2,7 @@ import numpy as np
 import os
 
 print("generate overall summary file ...")
-path = "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/develop/sbd_deana/sbd_resnet_3f_deana_fixed/"
+path = "/data/share/maxrecall_vhh_mmsi/develop/videos/results/sbd/develop/vgg16/dynamic_threshold_winsize_50_NEW/"
 
 experiment_name = path.split('/')[-2]
 net = path.split('/')[-3]
