@@ -424,66 +424,68 @@ class Evaluation(object):
 
 
         for t in thresholds_l:
-            tp_sum = 0
-            fp_sum = 0
-            tn_sum = 0
-            fn_sum = 0
-            THRESHOLD = t
+            for t2 in thresholds2_l:
+                tp_sum = 0
+                fp_sum = 0
+                tn_sum = 0
+                fn_sum = 0
+                THRESHOLD = t
+                THRESHOLD2 = t2
 
-            if(int(self.config_instance.save_eval_results) == 1):
-                fp_video_based = open(self.config_instance.path_eval_results + "/final_results_th-" + str(THRESHOLD)  + "-" + str(THRESHOLD2) + ".csv", 'w')
-                header = "vid_name;tp;fp;tn;fn;p;r;acc;f1_score;tp_rate;fp_rate"
-                fp_video_based.write(header + "\n")
+                if(int(self.config_instance.save_eval_results) == 1):
+                    fp_video_based = open(self.config_instance.path_eval_results + "/final_results_th-" + str(THRESHOLD)  + "-" + str(THRESHOLD2) + ".csv", 'w')
+                    header = "vid_name;tp;fp;tn;fn;p;r;acc;f1_score;tp_rate;fp_rate"
+                    fp_video_based.write(header + "\n")
 
-            results_l = []
-            for vid_name in vid_name_list:
-                if(self.config_instance.path_postfix_raw_results == 'csv'):
-                    results_np = self.loadRawResultsFromCsv(self.config_instance.path_raw_results_eval + "/" + vid_name)
-                elif (self.config_instance.path_postfix_raw_results == 'npy'):
-                    results_np = self.loadRawResultsFromNumpy(self.config_instance.path_raw_results_eval + "/" + vid_name)
+                results_l = []
+                for vid_name in vid_name_list:
+                    if(self.config_instance.path_postfix_raw_results == 'csv'):
+                        results_np = self.loadRawResultsFromCsv(self.config_instance.path_raw_results_eval + "/" + vid_name)
+                    elif (self.config_instance.path_postfix_raw_results == 'npy'):
+                        results_np = self.loadRawResultsFromNumpy(self.config_instance.path_raw_results_eval + "/" + vid_name)
 
-                # calculate similarity measures of consecutive frames and threshold them
-                shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=THRESHOLD, threshold2=THRESHOLD2)
-                print(shot_boundaries_np)
+                    # calculate similarity measures of consecutive frames and threshold them
+                    shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=THRESHOLD, threshold2=THRESHOLD2)
+                    print(shot_boundaries_np)
 
-                # calculate evaluation metrics
-                tp, fp, tn, fn = self.evaluation(shot_boundaries_np, vid_name)
-                p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp, fp, tn, fn)
+                    # calculate evaluation metrics
+                    tp, fp, tn, fn = self.evaluation(shot_boundaries_np, vid_name)
+                    p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp, fp, tn, fn)
+
+                    if (int(self.config_instance.save_eval_results) == 1):
+                        tmp_str = str(vid_name.replace('results_raw_', '').split('.')[0]) + ";" + str(tp) + ";" + str(fp) + \
+                                ";" + str(tn) + ";" + str(fn) + ";" + str(p) + ";" + str(r) + ";" + str(acc) + ";" + \
+                                str(f1_score) + ";" + str(tp_rate) + ";" + str(fp_rate)
+                        print(tmp_str)
+                        fp_video_based.write(tmp_str + "\n")
+                    #else:
+                    #    tp = 0;
+                    #    fp = 0;
+                    #    tn = 0;
+                    #    fn = 0;
+                    #    p = 0;
+                    #    r = 0;
+                    #    acc = 0;
+                    #    f1_score = 0;
+                    results_l.append([vid_name, tp, fp, tn, fn, p, r, acc, f1_score])
+
+                    tp_sum = tp_sum + tp
+                    fp_sum = fp_sum + fp
+                    tn_sum = tn_sum + tn
+                    fn_sum = fn_sum + fn
+
+                p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp_sum, fp_sum, tn_sum, fn_sum)
 
                 if (int(self.config_instance.save_eval_results) == 1):
-                    tmp_str = str(vid_name.replace('results_raw_', '').split('.')[0]) + ";" + str(tp) + ";" + str(fp) + \
-                              ";" + str(tn) + ";" + str(fn) + ";" + str(p) + ";" + str(r) + ";" + str(acc) + ";" + \
-                              str(f1_score) + ";" + str(tp_rate) + ";" + str(fp_rate)
+                    tmp_str = str("overall" + ";" + str(tp_sum) + ";" + str(fp_sum) + \
+                            ";" + str(tn_sum) + ";" + str(fn_sum) + ";" + str(p) + ";" + str(r) + ";" + str(acc) + ";" + \
+                            str(f1_score) + ";" + str(tp_rate) + ";" + str(fp_rate))
                     print(tmp_str)
+
                     fp_video_based.write(tmp_str + "\n")
-                #else:
-                #    tp = 0;
-                #    fp = 0;
-                #    tn = 0;
-                #    fn = 0;
-                #    p = 0;
-                #    r = 0;
-                #    acc = 0;
-                #    f1_score = 0;
-                results_l.append([vid_name, tp, fp, tn, fn, p, r, acc, f1_score])
+                    fp_video_based.close()
 
-                tp_sum = tp_sum + tp
-                fp_sum = fp_sum + fp
-                tn_sum = tn_sum + tn
-                fn_sum = fn_sum + fn
-
-            p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp_sum, fp_sum, tn_sum, fn_sum)
-
-            if (int(self.config_instance.save_eval_results) == 1):
-                tmp_str = str("overall" + ";" + str(tp_sum) + ";" + str(fp_sum) + \
-                          ";" + str(tn_sum) + ";" + str(fn_sum) + ";" + str(p) + ";" + str(r) + ";" + str(acc) + ";" + \
-                          str(f1_score) + ";" + str(tp_rate) + ";" + str(fp_rate))
-                print(tmp_str)
-
-                fp_video_based.write(tmp_str + "\n")
-                fp_video_based.close()
-
-            final_results.append([str(THRESHOLD), tp_sum, fp_sum, tn_sum, fn_sum, p, r, acc, f1_score, tp_rate, fp_rate])
+                final_results.append([str(THRESHOLD), tp_sum, fp_sum, tn_sum, fn_sum, p, r, acc, f1_score, tp_rate, fp_rate])
         final_results_np = np.array(final_results)
         return final_results_np
 
