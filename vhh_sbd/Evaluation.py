@@ -418,9 +418,10 @@ class Evaluation(object):
         elif(self.config_instance.threshold_mode == 'fixed'):
             thresholds_l = [1.0, 0.95, 0.90, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55,
                             0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
-            #thresholds_l = [0.80, 0.50, 0.30]
+            thresholds2_l = [0.0]  # oonly in adaptive mode
         else:
             thresholds_l = []
+            thresholds2_l = []  # oonly in adaptive mode
 
 
         for t in thresholds_l:
