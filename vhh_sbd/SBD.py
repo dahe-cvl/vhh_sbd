@@ -157,36 +157,30 @@ class SBD(object):
         # calculate thresholds
         distances_np = np.array(results_l)
         if (self.config_instance.threshold_mode == 'adaptive'):
-            thresholds = []
             window_size = self.config_instance.window_size
-            alpha = self.config_instance.threshold
-            for i in range(0, len(distances_np)):
+            alpha = self.config_instance.alpha
+            beta = self.config_instance.beta
 
-                if(i % window_size == 0):
-                    print(i)
-                    #print(distances_np)
-                    print(distances_np[i:i+window_size])
-                    th = np.mean(distances_np[i:i+window_size]) * 6.0
-                    print(th)
-
+            thresholds = []
+            for x in range(0, len(distances_np)):
+                if(x % window_size == 0):
+                    if (x % window_size == 0):
+                            th = np.mean(distances_np[x:x + window_size]) + alpha + np.std(distances_np[x:x + window_size]) * beta
                 thresholds.append(th)
             thresholds = np.array(thresholds)
-            print(thresholds.shape)
-            #exit()
+
             for i in range(0, len(distances_np)):
                 #print("####################")
                 #print(i)
                 #print("th: " + str(thresholds[i]))
                 #print("dist: " + str(distances_np[i]))
-
                 if (distances_np[i] > thresholds[i]):
                     idx_curr = i + 1
                     idx_prev = i
-
                     print("cut at: " + str(i) + " -> " + str(i+1))
-
                     printCustom("Abrupt Cut detected: " + str(idx_prev) + ", " + str(idx_curr), STDOUT_TYPE.INFO)
                     shot_l.append([self.vid_instance.vidName, (idx_prev, idx_curr)])
+                    
         elif (self.config_instance.threshold_mode == 'fixed'):
             for i in range(0, len(distances_np)):
                 if (distances_np[i] > self.config_instance.threshold):
