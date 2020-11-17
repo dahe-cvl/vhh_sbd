@@ -66,8 +66,9 @@ class PreProcessing(object):
         :return: This method returns a grayscale image (WxHx1).
         """
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        img_gray = np.expand_dims(img_gray, axis=-1)
-        return img_gray
+        img_gray_3channels = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2RGB)
+        #img_gray = np.expand_dims(img_gray, axis=-1)
+        return img_gray_3channels
 
     def crop(self, img: np.ndarray, dim: tuple):
         """
