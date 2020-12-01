@@ -106,56 +106,43 @@ class SBD(object):
         # initial pre-trained model
         self.net = PyTorchModel(model_arch=self.config_instance.backbone_cnn, use_gpu=self.config_instance.use_gpu)
 
-        # read all frames of video
-        cap = cv2.VideoCapture(src_path + "/" + vid_name)
-        frame_l = []
-
+        results_l = []
         cnt = 0
-        while(True):
+
+        cap = cv2.VideoCapture(src_path + "/" + vid_name)
+        cnt = cnt + 1
+        ret, frame_prev = cap.read()
+        if (ret == True):
+            frame_prev = self.pre_proc_instance.applyTransformOnImg(frame_prev)
+
+        number_of_frames = int(self.vid_instance.number_of_frames)
+
+        while(ret == True):
             cnt = cnt + 1
-            ret, frame = cap.read()
+            ret, frame_curr = cap.read()
             #print(cnt)
             #print(ret)
             #print(cap.get(cv2.CAP_PROP_FRAME_COUNT))
             if (ret == True):
-                frame = self.pre_proc_instance.applyTransformOnImg(frame)
-                frame_l.append(frame)
+                frame_curr = self.pre_proc_instance.applyTransformOnImg(frame_curr)
 
                 if (self.config_instance.debug_flag == 1):
                     if(cnt <= 500):
-                        cv2.imwrite(self.config_instance.path_eval_results + vid_name + "_" + str(cnt) + ".png", frame)
+                        cv2.imwrite(self.config_instance.path_eval_results + vid_name + "_" + str(cnt) + ".png", frame_curr)
 
-            else:
-                break
-        #exit()
-        frame_np = np.array(frame_l)
-
-        # calculate features and similarities
-        number_of_frames = len(frame_np)
-
-        #number_of_frames = 1000
-        results_l = []
-        shot_l = []
-        for i in range(1, number_of_frames):
-            #print("-------------------")
-            #print("process " + str(i))
-            idx_curr = i
-            idx_prev = i - 1
-
-            frm_prev = frame_np[idx_prev]
-            frm_curr = frame_np[idx_curr]
-
-            # print("process core part ... ")
-            feature_prev = self.net.getFeatures(frm_prev)
-            feature_curr = self.net.getFeatures(frm_curr)
-            result = self.calculateDistance(feature_prev, feature_curr)
-            # print(result)
-
-            if (int(self.config_instance.save_raw_results) == 1):
+                feature_prev = self.net.getFeatures(frame_prev)
+                feature_curr = self.net.getFeatures(frame_curr)
+                result = self.calculateDistance(feature_prev, feature_curr)
                 results_l.append(result)
 
-        # calculate thresholds
+                frame_prev = frame_curr
+            else:
+                break
+
         distances_np = np.array(results_l)
+
+        # calculate thresholds
+        shot_l = []
         if (self.config_instance.threshold_mode == 'adaptive'):
             window_size = self.config_instance.window_size
             alpha = self.config_instance.alpha
