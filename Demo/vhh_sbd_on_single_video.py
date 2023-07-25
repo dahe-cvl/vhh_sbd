@@ -2,7 +2,7 @@ from vhh_sbd.SBD import SBD
 import os
 
 # run shot boundary detection process
-config_file = "./config/config_vhh_test.yaml"
+config_file = "./config/config_vhh_mmsi_evaluation.yaml"
 sbd_instance = SBD(config_file)
 
 videos_path = sbd_instance.config_instance.path_videos

@@ -40,6 +40,7 @@ class PyTorchModel(object):
         :return: This method returns a flattened numpy array representing the visual features.
         """
         # print("calculate features ... ")
+
         try:
             image = Image.fromarray(frm.astype('uint8'))
             loader = transforms.Compose([transforms.ToTensor()])

@@ -250,7 +250,7 @@ class Evaluation(object):
         #print(gt_np[:10])
 
         sb_gt_np = self.convertShots2ShotBoundaries(gt_l)
-        #print(sb_gt_np[:10])
+        #print(sb_gt_np.shape)
         
         # load pred
         pred_l = []
@@ -261,7 +261,7 @@ class Evaluation(object):
             pred_l.append([vidname, (start, stop)])
 
         sb_pred_np = np.array(pred_l)
-        #print(sb_pred_np[:10])
+        #print(sb_pred_np.shape)
         
         '''
         print(vid_name)
@@ -290,8 +290,15 @@ class Evaluation(object):
                 list_pred_tmp = np.squeeze(sb_pred_np[:, 1:]).tolist()
             else:
                 list_pred_tmp = []
-            list_gt_tmp = np.squeeze(sb_gt_np[:, 1:]).tolist()
 
+            #print(sb_gt_np)
+            
+            if(len(sb_gt_np) > 0 ):
+                list_gt_tmp = np.squeeze(sb_gt_np[:, 1:]).tolist()
+            else:
+                list_gt_tmp = []
+
+            
             gt_flag = False
             pred_flag = False
 
@@ -331,6 +338,7 @@ class Evaluation(object):
         #    fn_cnt) + ";" + str(precision) + ";" + str(recall) + ";" + str(accuracy) + ";" + str(f1_score)
         #print(tmp_str)
         '''
+        '''
         print("---------------------------")
         print("video-based results")
         print("TP: " + str(tp_cnt))
@@ -338,12 +346,6 @@ class Evaluation(object):
         print("TN: " + str(tn_cnt))
         print("FN: " + str(fn_cnt))
         
-        print("precision: " + str(precision))
-        print("recall: " + str(recall))
-        print("accuracy: " + str(accuracy))
-        print("f1_score: " + str(f1_score))
-        '''
-
         return tp_cnt, fp_cnt, tn_cnt, fn_cnt
 
     def calculateMetrics(self, tp_cnt, fp_cnt, tn_cnt, fn_cnt):
@@ -403,21 +405,22 @@ class Evaluation(object):
         elif (self.config_instance.path_postfix_raw_results == 'npy'):
             vid_name_list = os.listdir(str(self.config_instance.path_raw_results_eval))
             vid_name_list = [i for i in vid_name_list if i.endswith('.npy')]
-        print(vid_name_list)
+        #print(vid_name_list)
 
         final_results = []
         fp_video_based = None
 
         if(self.config_instance.threshold_mode == 'adaptive'):
             ## alpha
-            thresholds_l = [0.1, 0.15, 0.2, 0.25, 0.30, 0.4, 0.45, 0.5, 0.55, 0.6]
+            #thresholds_l = [0.4]
+            thresholds_l = [0.1, 0.2, 0.30, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
             ## beta
-            thresholds2_l = [1.0, 0.95, 0.90, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55,
-                            0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
+            #thresholds2_l = [0.5]
+            thresholds2_l = [0.1, 0.2, 0.30, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+
         elif(self.config_instance.threshold_mode == 'fixed'):
-            thresholds_l = [1.0, 0.95, 0.90, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55,
-                            0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.10, 0.05, 0.0]
+            thresholds_l = [1.0, 0.90, 0.80, 0.70, 0.60, 0.50, 0.40, 0.30, 0.20, 0.10, 0.0]
             thresholds2_l = [0.0]  # oonly in adaptive mode
         else:
             thresholds_l = []
@@ -447,8 +450,8 @@ class Evaluation(object):
 
                     # calculate similarity measures of consecutive frames and threshold them
                     shot_boundaries_np = self.calculateSimilarityMetric(results_np, threshold=THRESHOLD, threshold2=THRESHOLD2)
-                    print(shot_boundaries_np)
-
+                    #print(shot_boundaries_np)
+                    
                     # calculate evaluation metrics
                     tp, fp, tn, fn = self.evaluation(shot_boundaries_np, vid_name)
                     p, r, acc, f1_score, tp_rate, fp_rate = self.calculateMetrics(tp, fp, tn, fn)

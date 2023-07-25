@@ -132,7 +132,13 @@ class SBD(object):
 
                 feature_prev = self.net.getFeatures(frame_prev)
                 feature_curr = self.net.getFeatures(frame_curr)
-                result = self.calculateDistance(feature_prev, feature_curr)
+                #print(feature_curr.shape)
+                #print(feature_prev.shape)
+
+                #print(feature_curr.squeeze().shape)
+                #print(feature_prev.shape)
+
+                result = self.calculateDistance(feature_prev.squeeze(), feature_curr.squeeze())
                 results_l.append(result)
 
                 frame_prev = frame_curr
@@ -140,6 +146,7 @@ class SBD(object):
                 break
 
         distances_np = np.array(results_l)
+        print(distances_np)
 
         # calculate thresholds
         shot_l = []
@@ -184,20 +191,25 @@ class SBD(object):
         # save raw results to file
         if (int(self.config_instance.save_raw_results) == 1):
             print("save raw results ... ")
-            raw_results_l = []
-            raw_results_l.append([1, number_of_frames, results_l])
-            results_np = np.array(raw_results_l)
+            raw_results_triplet = (1, number_of_frames, results_l)
+            #print(number_of_frames)
+            #print(results_l)
+            #raw_results_l.append(1)
+            #raw_results_l.append(number_of_frames)
+            #raw_results_l.append(results_l)
+            #results_np = np.array(raw_results_l)
+            #print(results_np)
             if (self.config_instance.path_postfix_raw_results == 'csv'):
-                self.exportRawResultsAsCsv_New(results_np)
+                self.exportRawResultsAsCsv_New(raw_results_triplet)
             elif (self.config_instance.path_postfix_raw_results == 'npy'):
-                self.exportRawResultsAsNumpy(results_np)
+                self.exportRawResultsAsNumpy(raw_results_triplet)
 
         if (len(shot_l) == 0):
             print("no cuts detected ... ")
             shot_l.append([self.vid_instance.vidName, (-1, -1)])
 
         # convert shot boundaries to shots
-        shots_np = np.array(shot_l)
+        shots_np = np.array(shot_l, dtype=object)
 
         return shots_np
 
@@ -209,9 +221,11 @@ class SBD(object):
         :return: This method returns a numpy list with all detected shots in a video.
         """
         #printCustom("process shot detection ... ", STDOUT_TYPE.INFO);
+        print("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
 
         # initial pre-trained model
         self.net = PyTorchModel(model_arch=self.config_instance.backbone_cnn, use_gpu=self.config_instance.use_gpu)
+        print("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
 
         results_l = []
         shot_l = []
@@ -219,12 +233,12 @@ class SBD(object):
             start = candidates_np[i][0]
             end = candidates_np[i][1] - 1
 
-            #print(start)
-            #print(end)
+            print(start)
+            print(end)
             results_per_range = []
             for j in range(start+1, end):
-                # print("-------------------")
-                # print("process " + str(i))
+                print("-------------------")
+                print("process " + str(i))
                 idx_curr = j
                 idx_prev = j - 1
 
@@ -233,10 +247,10 @@ class SBD(object):
 
                 if(len(frm_prev) == 0 or len(frm_curr) == 0):
                     break
-                #print(idx_prev)
-                #print(idx_curr)
-                #print(frm_prev.shape)
-                #print(frm_curr.shape)
+                print(idx_prev)
+                print(idx_curr)
+                print(frm_prev.shape)
+                print(frm_curr.shape)
 
                 frm_trans_prev = self.pre_proc_instance.applyTransformOnImg(frm_prev)
                 frm_trans_curr = self.pre_proc_instance.applyTransformOnImg(frm_curr)
@@ -311,7 +325,7 @@ class SBD(object):
                   self.config_instance.path_postfix_raw_results,
                 results_np)
 
-    def exportRawResultsAsCsv_New(self, results_np: np.ndarray):
+    def exportRawResultsAsCsv_New(self, results_triplet):
         """
         This method is used to export the raw results to a csv file.
 
@@ -323,13 +337,13 @@ class SBD(object):
                   str(self.vid_instance.vidName.split('.')[0]) + "." +
                   self.config_instance.path_postfix_raw_results, mode='w')
 
-        for i in range(0, len(results_np)):
-            start, end, distances_l = results_np[i]
-            tmp_str = str(start) + ";" + str(end)
-            for j in range(0, len(distances_l)):
-                tmp_str = tmp_str + ";" + str(distances_l[j])
-            fp.write(self.vid_instance.vidName.split('.')[0] + ";" + str(tmp_str) + "\n")
-            # csv_writer.writerow(row);
+        #for i in range(0, len(results_l)):
+        start, end, distances_l = results_triplet
+        tmp_str = str(start) + ";" + str(end)
+        for j in range(0, len(distances_l)):
+            tmp_str = tmp_str + ";" + str(distances_l[j])
+        fp.write(self.vid_instance.vidName.split('.')[0] + ";" + str(tmp_str) + "\n")
+        # csv_writer.writerow(row);
         fp.close()
 
     def calculateDistance(self, x, y):
